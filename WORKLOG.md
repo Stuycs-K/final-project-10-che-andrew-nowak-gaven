@@ -1,10 +1,10 @@
 # Work Log
 
-## GROUP MEMBER 1
+## Gaven
 
-### date x
+### may/22
 
-info
+reserached and tested spectogram audio analysis programs with Andrew 
 
 ### date y
 
