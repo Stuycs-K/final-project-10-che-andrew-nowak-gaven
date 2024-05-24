@@ -62,13 +62,14 @@ int main(int argc, char* argv[]) {
         printf("File provided does not appear to be in WAV format.\n");
         return 1;
     }
+    lseek(fd, 0, SEEK_SET);
     unsigned char* bytes = malloc(dataSize);
     int readBytes;
     while( (readBytes = read(fd, bytes, dataSize)) ){
-      if(readBytes < dataSize) {
-          printf("WAV file broken: size mismatch\n");
-          return 1;
-      }
+      // if(readBytes < dataSize) {
+      //     printf("WAV file broken: size mismatch\n");
+      //     return 1;
+      // }
       write(fdOut, bytes, dataSize);
     }
 
