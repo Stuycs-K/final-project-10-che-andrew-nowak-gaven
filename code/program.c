@@ -20,8 +20,6 @@ unsigned char leastSigBit(unsigned char byte, int num, int insert){
   return byte - (byte % ((int) pow(2,num))) + insert;
 }
 
-
-
 //assumes fd is at start of file, returns 0 if not WAV and data size if WAV
 int checkWav(int fd) {
     char* s = malloc(5);
@@ -43,6 +41,23 @@ int checkWav(int fd) {
     int size;
     if(read(fd, &size, 4) < 4) return 0; //file location is now at start of data
     return size;
+}
+
+//Draw the first 100 amplitudes
+void drawGraph(unsigned char* bytes, int dataSize) {
+    short* curr = (short*)bytes;
+    int scaled[100];
+    for(int i = 0; i < dataSize / 2 && i < 100; ++i) {
+        scaled[i] = *curr;
+        scaled[i] = scaled[i] * 20 / 32767; //scaled is -20 to 20
+        scaled[i] += 40;
+        ++curr;
+    }
+    for(int i = 0; i < dataSize / 2 && i < 100; ++i) {
+        int currScale = scaled[i];
+        for(int j = 0; j < currScale; ++j) printf(" ");
+        printf("*\n");
+    }
 }
 
 int main(int argc, char* argv[]) {
@@ -72,7 +87,7 @@ int main(int argc, char* argv[]) {
       // }
       write(fdOut, bytes, dataSize);
     }
-
     close(fd);
     close(fdOut);
+    drawGraph(bytes, dataSize);
 }

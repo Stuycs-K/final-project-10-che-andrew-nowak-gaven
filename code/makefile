@@ -1,8 +1,8 @@
-compile main: program.o
+compile program: program.o
 	@gcc -o program program.o -lm
-main.o:
-	@gcc program.c -c -Wall -lm
-run: main
+program.o: program.c
+	@gcc -c -Wall program.c -lm
+run: program
 	@./program $(ARGS)
 clean:
 	@rm -f *.o
