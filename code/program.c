@@ -20,8 +20,14 @@ int checkWav(int fd) {
     //file size - 8 is stored in s now
     if(read(fd, s, 4) < 4) return 0;
     if(strcmp(s, "WAVE") != 0) return 0;
-    while(strcmp(s, "data") != 0) {
-        
+    if(read(fd, s, 4) < 4) return 0; // next subchunk header is now in data
+    int lastHeader = 12;
+    while(strcmp(s, "data") != 0) { // this loop reads the subchunk size then skips ahead to the next subchunk
+        int size;
+        if(read(fd, &size, 4) < 4) return 0; // current subchunk size is now in size
+        lastHeader += size + 8; // +8 because subchunk header size does not include first 8 bytes (subchunk id and size)
+        lseek(fd, lastHeader, SEEK_SET); 
+        if(read(fd, s, 4) < 4) return 0; // current subchunk id (name) is now in s
     }
     int size;
     if(read(fd, &size, 4) < 4) return 0; //file location is now at start of data
@@ -45,5 +51,6 @@ int main(int argc, char* argv[]) {
         printf("WAV file broken: size mismatch\n");
         return 1;
     }
+    close(fd);
     return 0;
 }
