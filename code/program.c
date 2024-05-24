@@ -22,7 +22,7 @@ int checkWav(int fd) {
 
 //takes 'byte' and zeros out all least significant bits up to and including 'num' and inserts 'insert' into those bits.
 unsigned char leastSigBit(unsigned char byte, int num, int insert){
-  return byte - (byte % ((int) pow(2,num) + insert;
+  return byte - (byte % ((int) pow(2,num))) + insert;
 }
 
 
@@ -40,7 +40,7 @@ int main(int argc, char *argv[]) {
     //
     // }
 
-    if(( argc > 0 || strcmp(argv[1], "encode") == 0 ) {
+    if( ( argc > 0 ) || (strcmp(argv[1], "encode") == 0 )) {
       printf("yay!\n");
     }
     unsigned char byte = 95;
