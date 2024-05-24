@@ -43,12 +43,14 @@ int checkWav(int fd) {
     return size;
 }
 
+//Draw the first 100 amplitudes
 void drawGraph(unsigned char* bytes, int dataSize) {
-    short* curr = bytes;
+    short* curr = (short*)bytes;
     int scaled[100];
     for(int i = 0; i < dataSize / 2 && i < 100; ++i) {
         scaled[i] = *curr;
-        scaled[i] = scaled[i] * 20 / 32767; //scaled is 0-20
+        scaled[i] = scaled[i] * 20 / 32767; //scaled is -20 to 20
+        scaled[i] += 40;
         ++curr;
     }
     for(int i = 0; i < dataSize / 2 && i < 100; ++i) {
