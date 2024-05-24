@@ -37,7 +37,7 @@ int checkWav(int fd) {
         int size;
         if(read(fd, &size, 4) < 4) return 0; // current subchunk size is now in size
         lastHeader += size + 8; // +8 because subchunk header size does not include first 8 bytes (subchunk id and size)
-        lseek(fd, lastHeader, SEEK_SET); 
+        lseek(fd, lastHeader, SEEK_SET);
         if(read(fd, s, 4) < 4) return 0; // current subchunk id (name) is now in s
     }
     int size;
@@ -65,6 +65,3 @@ int main(int argc, char* argv[]) {
     close(fd);
 
 }
-
-
-
