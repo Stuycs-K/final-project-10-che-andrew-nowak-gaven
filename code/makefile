@@ -7,3 +7,4 @@ run: program
 clean:
 	@rm -f *.o
 	@rm -f program
+	@rm -f *.wav

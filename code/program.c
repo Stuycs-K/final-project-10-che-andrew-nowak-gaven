@@ -77,17 +77,26 @@ int main(int argc, char* argv[]) {
         printf("File provided does not appear to be in WAV format.\n");
         return 1;
     }
-    lseek(fd, 0, SEEK_SET);
+
     unsigned char* bytes = malloc(dataSize);
+    unsigned char* insertion = malloc(dataSize);
     int readBytes;
-    while( (readBytes = read(fd, bytes, dataSize)) ){
-      // if(readBytes < dataSize) {
-      //     printf("WAV file broken: size mismatch\n");
-      //     return 1;
-      // }
-      write(fdOut, bytes, dataSize);
+
+    //this writes the 44 metadata bytes into the output file before changing bits
+    lseek(fd, 0, SEEK_SET);
+    printf("%d\n", dataSize);
+    for(int n = 0; n < 77; n++){
+      readBytes = read(fd, bytes, 1);
+      if(readBytes == 0) err();
+      write(fdOut, bytes, 1);
+    }
+
+    lseek(fd, 77, SEEK_SET);
+    while( (readBytes = read(fd, bytes, 1)) ){
+      insertion[0] = leastSigBit(bytes[0], 2, 1);
+      write(fdOut, insertion, dataSize);
     }
     close(fd);
     close(fdOut);
-    drawGraph(bytes, dataSize);
+    //drawGraph(bytes, dataSize);
 }
