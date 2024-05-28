@@ -35,7 +35,7 @@ int checkWav(int fd) {
         int size;
         if(read(fd, &size, 4) < 4) return 0; // current subchunk size is now in size
         lastHeader += size + 8; // +8 because subchunk header size does not include first 8 bytes (subchunk id and size)
-        lseek(fd, lastHeader, SEEK_SET); 
+        lseek(fd, lastHeader, SEEK_SET);
         if(read(fd, s, 4) < 4) return 0; // current subchunk id (name) is now in s
     }
     int size;
@@ -61,25 +61,33 @@ void drawGraph(unsigned char* bytes, int dataSize) {
 }
 
 int main(int argc, char* argv[]) {
-    if(argc < 2) {
-        printf("Please provide path of WAV file\n");
+    if(argc < 3) {
+        printf("Please provide path of WAV file and a file name\n");
         return 1;
     }
     int fd = open(argv[1], O_RDONLY);
+    int fdOut = open(argv[2], O_WRONLY | O_CREAT, 0600);
+
     if(fd < 0) err();
+    if(fdOut < 0) err();
+
+    //creating the out file wav and copying everything from chunkID to DATA .wav metadata
     int dataSize = checkWav(fd);
     if(dataSize == 0) {
         printf("File provided does not appear to be in WAV format.\n");
         return 1;
     }
+    lseek(fd, 0, SEEK_SET);
     unsigned char* bytes = malloc(dataSize);
-    if(read(fd, bytes, dataSize) < dataSize) {
-        printf("WAV file broken: size mismatch\n");
-        return 1;
+    int readBytes;
+    while( (readBytes = read(fd, bytes, dataSize)) ){
+      // if(readBytes < dataSize) {
+      //     printf("WAV file broken: size mismatch\n");
+      //     return 1;
+      // }
+      write(fdOut, bytes, dataSize);
     }
     close(fd);
+    close(fdOut);
     drawGraph(bytes, dataSize);
 }
-
-
-
