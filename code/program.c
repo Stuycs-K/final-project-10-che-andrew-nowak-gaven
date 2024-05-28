@@ -93,6 +93,14 @@ void LSBextract(unsigned char* bytes) {
     printf("\n");
 }
 
+void freqInsert(unsigned char* bytes, int length, char*msg, int freq){
+
+}
+
+void freqExtract(unsigned char* bytes){
+
+}
+
 int main(int argc, char* argv[]) {
     if(argc < 3) {
         printf("Please provide path of WAV file and a file name\n");
@@ -111,6 +119,9 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    int sampleRate;
+    int bitsPerSample;
+
     unsigned char* bytes = malloc(dataSize);
     if(read(fd, bytes, dataSize) < dataSize) err();
     LSBinsert(bytes, dataSize, "hello world");
@@ -120,9 +131,11 @@ int main(int argc, char* argv[]) {
     while( (readBytes = read(fd, buff, 4)) ){
         write(fdOut, buff, 4);
         if(strncmp(buff, "data", 4) == 0) break;
+        //lseek and get the sampleRate and bitsPerSample;
     }
     read(fd, buff, 4);
-    write(fdOut, buff, dataSize);
+    write(fdOut, buff, 4);
+    write(fdOut, bytes, dataSize);
     close(fd);
     close(fdOut);
     int fdNew = open(argv[2], O_RDONLY);
