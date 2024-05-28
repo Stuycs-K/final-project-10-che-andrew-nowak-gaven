@@ -77,7 +77,7 @@ void LSBinsert(unsigned char* bytes, int length, char* msg) {
 }
 
 void LSBextract(unsigned char* bytes) {
-    int i = 1, pos = 0;;
+    int i = 1, pos = 0;
     while(i) {
         i = 0;
         i += (int)(bytes[pos]) & 3;
@@ -122,7 +122,8 @@ int main(int argc, char* argv[]) {
         if(strncmp(buff, "data", 4) == 0) break;
     }
     read(fd, buff, 4);
-    write(fdOut, buff, dataSize);
+    write(fdOut, buff, 4);
+    write(fdOut, bytes, dataSize);
     close(fd);
     close(fdOut);
     int fdNew = open(argv[2], O_RDONLY);
