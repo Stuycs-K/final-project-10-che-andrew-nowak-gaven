@@ -60,6 +60,39 @@ void drawGraph(unsigned char* bytes, int dataSize) {
     }
 }
 
+void LSBinsert(unsigned char* bytes, int length, char* msg) {
+    if(4 * strlen(msg) > length) {
+        printf("WAV file provided is too small to store data\n");
+        exit(1);
+    }
+    for(int i = 0; i <= strlen(msg); ++i) {
+        int val;
+        if(i == strlen(msg)) val = 0;
+        else val = (int)(msg[i]);
+        bytes[4*i] = leastSigBit(bytes[4*i], 2, (val & 192) >> 6);
+        bytes[4*i+1] = leastSigBit(bytes[4*i+1], 2, (val & 48) >> 4);
+        bytes[4*i+2] = leastSigBit(bytes[4*i+2], 2, (val & 12) >> 2);
+        bytes[4*i+3] = leastSigBit(bytes[4*i+3], 2, (val & 3));
+    }
+}
+
+void LSBextract(unsigned char* bytes) {
+    int i = 1, pos = 0;;
+    while(i) {
+        i = 0;
+        i += (int)(bytes[pos]) & 3;
+        i = i << 2;
+        i += (int)(bytes[pos+1]) & 3;
+        i = i << 2;
+        i += (int)(bytes[pos+2]) & 3;
+        i = i << 2;
+        i += (int)(bytes[pos+3]) & 3;
+        printf("%c", i);
+        pos += 4;
+    }
+    printf("\n");
+}
+
 int main(int argc, char* argv[]) {
     if(argc < 3) {
         printf("Please provide path of WAV file and a file name\n");
@@ -79,15 +112,26 @@ int main(int argc, char* argv[]) {
     }
     lseek(fd, 0, SEEK_SET);
     unsigned char* bytes = malloc(dataSize);
+    if(read(fd, bytes, dataSize) < dataSize) err();
+    LSBinsert(bytes, dataSize, "hello world");
+    lseek(fd, 0, SEEK_SET);
     int readBytes;
-    while( (readBytes = read(fd, bytes, dataSize)) ){
-      // if(readBytes < dataSize) {
-      //     printf("WAV file broken: size mismatch\n");
-      //     return 1;
-      // }
-      write(fdOut, bytes, dataSize);
+    char buff[4];
+    while( (readBytes = read(fd, buff, 4)) ){
+        write(fdOut, buff, 4);
+        if(strncmp(buff, "data", 4) == 0) break;
     }
+    read(fd, buff, 4);
+    write(fdOut, buff, dataSize);
     close(fd);
     close(fdOut);
-    drawGraph(bytes, dataSize);
+    int fdNew = open(argv[2], O_RDONLY);
+    if(fdNew < 0) err();
+    while( (readBytes = read(fdNew, buff, 4)) ){
+        if(strncmp(buff, "data", 4) == 0) break;
+    }
+    read(fdNew, buff, 4);
+    read(fdNew, bytes, dataSize);
+    LSBextract(bytes);
+    //drawGraph(bytes, dataSize);
 }
