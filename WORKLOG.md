@@ -17,6 +17,6 @@ info
 
 Researched spectrogram and wav files, did some digging and found a sample wav > spectrogram program on StackOverflow
 
-### date y
+### 5/24
 
-info
+Deleted old program since we decided on a new idea. Made a program that extracts data bytes from a WAV file and puts it in an unsigned char (byte) array.
