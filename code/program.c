@@ -52,16 +52,25 @@ int* checkWavMore(int fd) {
     if(strcmp(s, "RIFF") != 0) return NULL;
     if(read(fd, s, 4) < 4) return NULL;
     //file size - 8 is stored in s now
-    if(read(fd, s, 4) < 4) return NULL;
-    if(strcmp(s, "WAVE") != 0) return NULL;
-    lseek(fd, 12, SEEK_CUR);
+    if(read(fd, s, 
+    4) < 4) return NULL;
+    if(read(fd, s, 4) < 4) return 0; // next subchunk header is now in data
+    int lastHeader = 12;
+    while(strcmp(s, "fmt ") != 0) { // this loop reads the subchunk size then skips ahead to the next subchunk
+        int size;
+        if(read(fd, &size, 4) < 4) return 0; // current subchunk size is now in size
+        lastHeader += size + 8; // +8 because subchunk header size does not include first 8 bytes (subchunk id and size)
+        lseek(fd, lastHeader, SEEK_SET);
+        if(read(fd, s, 4) < 4) return 0; // current subchunk id (name) is now in s
+    }
+    lseek(fd, 8, SEEK_CUR);
     if(read(fd, result, 4) < 4) return NULL;
     lseek(fd, 6, SEEK_CUR);
     short bps = 0;
     if(read(fd, &bps, 2) < 2) return NULL;
     result[1] = (int)bps;
+    lastHeader = lseek(fd, 0, SEEK_CUR);
     if(read(fd, s, 4) < 4) return NULL;
-    int lastHeader = 36;
     while(strcmp(s, "data") != 0) { // this loop reads the subchunk size then skips ahead to the next subchunk
         int size;
         if(read(fd, &size, 4) < 4) return 0; // current subchunk size is now in size
