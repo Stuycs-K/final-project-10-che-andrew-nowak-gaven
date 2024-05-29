@@ -44,6 +44,37 @@ int checkWav(int fd) {
     return size;
 }
 
+// returns {sampleRate, bitsPerSample, dataSize}
+int* checkWavMore(int fd) {
+    int* result = malloc(3 * sizeof(int));
+    char* s = malloc(5);
+    if(read(fd, s, 4) < 4) return NULL;
+    if(strcmp(s, "RIFF") != 0) return NULL;
+    if(read(fd, s, 4) < 4) return NULL;
+    //file size - 8 is stored in s now
+    if(read(fd, s, 4) < 4) return NULL;
+    if(strcmp(s, "WAVE") != 0) return NULL;
+    lseek(fd, 12, SEEK_CUR);
+    if(read(fd, result, 4) < 4) return NULL;
+    lseek(fd, 6, SEEK_CUR);
+    short bps = 0;
+    if(read(fd, &bps, 2) < 2) return NULL;
+    result[1] = (int)bps;
+    if(read(fd, s, 4) < 4) return NULL;
+    int lastHeader = 36;
+    while(strcmp(s, "data") != 0) { // this loop reads the subchunk size then skips ahead to the next subchunk
+        int size;
+        if(read(fd, &size, 4) < 4) return 0; // current subchunk size is now in size
+        lastHeader += size + 8; // +8 because subchunk header size does not include first 8 bytes (subchunk id and size)
+        //printf("%d", lastHeader);
+        lseek(fd, lastHeader, SEEK_SET);
+        if(read(fd, s, 4) < 4) return 0; // current subchunk id (name) is now in s
+    }
+    if(read(fd, result + 2, 4) < 4) return NULL; //file location is now at start of data
+    free(s);
+    return result;
+}
+
 //Draw the first 100 amplitudes
 void drawGraph(unsigned char* bytes, int dataSize) {
     short* curr = (short*)bytes;
@@ -112,11 +143,13 @@ int main(int argc, char* argv[]) {
         if(fdOut < 0) err();
 
         //creating the out file wav and copying everything from chunkID to DATA .wav metadata
-        int dataSize = checkWav(fd);
-        if(dataSize == 0) {
+        int* a = checkWavMore(fd);
+        if(a == NULL) {
             printf("File provided does not appear to be in WAV format.\n");
             return 1;
         }
+        //printf("%d %d\n", a[0], a[1]);
+        int dataSize = a[2];
 
         unsigned char* bytes = malloc(dataSize);
         if(read(fd, bytes, dataSize) < dataSize) {
