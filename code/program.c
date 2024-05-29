@@ -52,7 +52,7 @@ int* checkWavMore(int fd) {
     if(strcmp(s, "RIFF") != 0) return NULL;
     if(read(fd, s, 4) < 4) return NULL;
     //file size - 8 is stored in s now
-    if(read(fd, s, 
+    if(read(fd, s,
     4) < 4) return NULL;
     if(read(fd, s, 4) < 4) return 0; // next subchunk header is now in data
     int lastHeader = 12;
