@@ -134,11 +134,51 @@ void LSBextract(unsigned char* bytes) {
     printf("\n");
 }
 
-void freqInsert(unsigned char* bytes, int length, char*msg, int freq){
+void freqInsert(unsigned char* bytes, int length, char*msg, int freq, int bitsPerSamplePerChannel){
+
+  if(4 * strlen(msg) > length) {
+      printf("WAV file provided is too small to store data (freqInsert)\n");
+      exit(1);
+  }
+
+  //assume two channels
+
+//2000hz samples per sec * 2 bytes per sample per channel * 2 channel -> 8000 bytes per sec
+//every 8000th byte
+//of a 4 point sin wave change the 2 and 4th. Change it for BOTH channels.
+
+  int freqByteRate = freq * (bitsPerSamplePerChannel / 8) * 2;
+  int offset = (freqByteRate / 4);
+  bytes += offset;
+  for (int n = 0; n <= strlen(msg); n++){
+    bytes += (freqByteRate / 2) ;
+    LSBinsert( bytes , length, &msg[n] );
+    bytes += (freqByteRate / 2) ;
+    LSBinsert( bytes , length, &msg[n] );
+  }
 
 }
 
-void freqExtract(unsigned char* bytes){
+void freqExtract(unsigned char* bytes, int freq, int bitsPerSamplePerChannel){
+  //assume two channels
+  int freqByteRate = freq * (bitsPerSamplePerChannel / 8) * 2;
+  int offset = (freqByteRate / 4);
+  bytes += offset;
+  int i = 1;
+  while(i){
+    i = 0;
+    i += (int)(*bytes) & 3;
+    i = i << 2;
+    i += (int)(*(bytes + 1)) & 3;
+    i = i << 2;
+    i += (int)(*(bytes + 2)) & 3;
+    i = i << 2;
+    i += (int)(*(bytes + 3)) & 3;
+    printf("%c", i);
+    bytes+= (freqByteRate / 2);
+  }
+  printf("\n");
+
 
 }
 
@@ -165,6 +205,7 @@ int main(int argc, char* argv[]) {
             printf("File provided does not appear to be in WAV format.\n");
             return 1;
         }
+        //doesn't work with the "JUNK" chunk in inst_test_mono and stereo
         //printf("%d %d\n", a[0], a[1]);
         int dataSize = a[2];
 
@@ -207,6 +248,73 @@ int main(int argc, char* argv[]) {
         }
         //printf("%d ", bytes[0]); printf("%d ", bytes[1]); printf("%d\n", bytes[2]);
         LSBextract(bytes);
+        close(fd);
+        free(bytes);
+    }
+    else if(strcmp(argv[1], "freqEncode") == 0) {
+      if(argc < 4) {
+          printf("ARGS should be \"[input file] [output file]\"\n");
+          return 1;
+      }
+      //printf("%s\n", argv[2]);
+      int fd = open(argv[2], O_RDONLY);
+      int fdOut = open(argv[3], O_WRONLY | O_CREAT | O_TRUNC, 0600);
+
+      if(fd < 0) err();
+      if(fdOut < 0) err();
+
+      //creating the out file wav and copying everything from chunkID to DATA .wav metadata
+      int* a = checkWavMore(fd);
+      if(a == NULL) {
+          printf("File provided does not appear to be in WAV format.\n");
+          return 1;
+      }
+      //printf("%d %d\n", a[0], a[1]);
+      int dataSize = a[2];
+
+      unsigned char* bytes = malloc(dataSize);
+      if(read(fd, bytes, dataSize) < dataSize) {
+          printf("WAV file broken: data size incorrect");
+          return 1;
+      }
+      freqInsert(bytes, dataSize, "hello world", 240, a[1]);
+      lseek(fd, 0, SEEK_SET);
+      char buff[4];
+      while( read(fd, buff, 2) ){
+          write(fdOut, buff, 2);
+          if(strncmp(buff, "ta", 2) == 0) break;
+      }
+      write(fdOut, &dataSize, 4);
+      //printf("%d ", bytes[0]); printf("%d ", bytes[1]); printf("%d\n", bytes[2]);
+      //printf("%d\n", lseek(fdOut, 0, SEEK_CUR));
+      write(fdOut, bytes, dataSize);
+      close(fd);
+      close(fdOut);
+      free(bytes);
+    }
+    else if(strcmp(argv[1], "freqDecode") == 0) {
+        if(argc < 3) {
+            printf("ARGS should be \"[input file]\"\n");
+            return 1;
+        }
+        int fd = open(argv[2], O_RDONLY);
+        if(fd < 0) err();
+        int* a = checkWavMore(fd);
+        if(a == NULL) {
+            printf("File provided does not appear to be in WAV format.\n");
+            return 1;
+        }
+        //doesn't work with the "JUNK" chunk in inst_test_mono and stereo
+        //printf("%d %d\n", a[0], a[1]);
+        int dataSize = a[2];
+        unsigned char* bytes = malloc(dataSize);
+        //printf("%d\n", lseek(fd, 0, SEEK_CUR));
+        if(read(fd, bytes, dataSize) < dataSize) {
+            printf("WAV broken\n");
+            return 1;
+        }
+        //printf("%d ", bytes[0]); printf("%d ", bytes[1]); printf("%d\n", bytes[2]);
+        freqExtract(bytes, 240, a[1]);
         close(fd);
         free(bytes);
     }
