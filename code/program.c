@@ -125,11 +125,32 @@ void LSBextract(unsigned char* bytes) {
     printf("\n");
 }
 
-void freqInsert(unsigned char* bytes, int length, char*msg, int freq){
+void freqInsert(unsigned char* bytes, int length, char*msg, int freq, int bitsPerSamplePerChannel){
+
+  if(4 * strlen(msg) > length) {
+      printf("WAV file provided is too small to store data (freqInsert)\n");
+      exit(1);
+  }
+
+  //assume two channels
+
+//2000hz samples per sec * 2 bytes per sample per channel * 2 channel -> 8000 bytes per sec
+//every 8000th byte
+//of a 4 point sin wave change the 2 and 4th. Change it for BOTH channels.
+
+  int freqByteRate = freq * (bitsPerSamplePerChannel / 8) * 2;
+  int offset = (freqByteRate / 4);
+  *bytes += offset;
+  for (int n = 0; n <= strlen(msg); n++){
+    *bytes += (freqByteRate / 2) ;
+    LSBinsert( bytes , length, &msg[n] );
+    *bytes += (freqByteRate / 2) ;
+    LSBinsert( bytes , length, &msg[n] );
+  }
 
 }
 
-void freqExtract(unsigned char* bytes){
+void freqExtract(unsigned char* bytes, int freq){
 
 }
 
@@ -156,6 +177,7 @@ int main(int argc, char* argv[]) {
             printf("File provided does not appear to be in WAV format.\n");
             return 1;
         }
+        //doesn't work with the "JUNK" chunk in inst_test_mono and stereo
         //printf("%d %d\n", a[0], a[1]);
         int dataSize = a[2];
 

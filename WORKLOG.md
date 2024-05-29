@@ -2,14 +2,29 @@
 
 ## Gaven
 
-### may/22
+### 5/22
 
-reserached and tested spectogram audio analysis programs with Andrew 
+Researched and tested spectogram audio analysis programs with Andrew. Also researched the components and metadata of a .wav file.
 
-### date y
+### 5/23
 
-info
+More research and more testing of the spectogram audio analysis programs with Andrew. Starting to implement byte editing of the data that controls the sound of the .wav file. 
 
+### 5/24
+
+Scrapping the spectogram idea and will now focus on performing LSB on a .wav file.
+
+### 5/25-5/27
+
+Helped Andrew write functions to insert and extract a string into/out of a WAV file's least significant bytes. Basically did our Processing image encoder and decoder but with WAV bytes instead of PNG bytes. Also researching an experimental frequency method of doing LSB on the audio file.
+
+### 5/28
+
+Continuing to research the frequency method and beginning to implement freqEncode/Decode using Andrew's work on getting bitsPerSample.
+
+### 5/29
+
+Continuing to work on freqEncode and Decode.
 
 ## Andrew
 
