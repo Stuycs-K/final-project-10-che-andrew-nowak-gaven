@@ -40,6 +40,7 @@ int checkWav(int fd) {
     }
     int size;
     if(read(fd, &size, 4) < 4) return 0; //file location is now at start of data
+    //printf("%d\n", lastHeader);
     return size;
 }
 
@@ -136,7 +137,7 @@ int main(int argc, char* argv[]) {
         }
         //printf("%s\n", argv[2]);
         int fd = open(argv[2], O_RDONLY);
-        int fdOut = open(argv[3], O_WRONLY | O_CREAT, 0600);
+        int fdOut = open(argv[3], O_WRONLY | O_CREAT | O_TRUNC, 0600);
 
         if(fd < 0) err();
         if(fdOut < 0) err();
@@ -156,12 +157,13 @@ int main(int argc, char* argv[]) {
         LSBinsert(bytes, dataSize, "hello world");
         lseek(fd, 0, SEEK_SET);
         char buff[4];
-        while( read(fd, buff, 4) ){
-            write(fdOut, buff, 4);
-            if(strncmp(buff, "data", 4) == 0) break;
+        while( read(fd, buff, 2) ){
+            write(fdOut, buff, 2);
+            if(strncmp(buff, "ta", 2) == 0) break;
         }
-        read(fd, buff, 4);
-        write(fdOut, buff, 4);
+        write(fdOut, &dataSize, 4);
+        //printf("%d ", bytes[0]); printf("%d ", bytes[1]); printf("%d\n", bytes[2]);
+        //printf("%d\n", lseek(fdOut, 0, SEEK_CUR));
         write(fdOut, bytes, dataSize);
         close(fd);
         close(fdOut);
@@ -179,10 +181,12 @@ int main(int argc, char* argv[]) {
             return 1;
         }
         unsigned char* bytes = malloc(dataSize);
+        //printf("%d\n", lseek(fd, 0, SEEK_CUR));
         if(read(fd, bytes, dataSize) < dataSize) {
-            printf("WAV file broken: data size incorrect");
+            printf("WAV broken\n");
             return 1;
         }
+        //printf("%d ", bytes[0]); printf("%d ", bytes[1]); printf("%d\n", bytes[2]);
         LSBextract(bytes);
         close(fd);
         free(bytes);
