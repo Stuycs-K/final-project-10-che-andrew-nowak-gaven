@@ -11,7 +11,7 @@ reserached and tested spectogram audio analysis programs with Andrew
 info
 
 
-## GROUP MEMBER 2
+## Andrew
 
 ### 5/23
 
@@ -24,3 +24,7 @@ Deleted old program since we decided on a new idea. Made a program that extracts
 ### 5/25-5/27
 
 Wrote functions to insert and extract a string into/out of a WAV file's least significant bytes. Basically did our Processing image encoder and decoder but with WAV bytes instead of PNG bytes.
+
+### 5/28
+
+Separated encode and decode into two different targets and functions. Spent hours of homework time fixing a bug where I assumed the fmt subchunk was a multiple of 4 and then wrote a function to return sampleRate and bitsPerSample as well as dataSize.
