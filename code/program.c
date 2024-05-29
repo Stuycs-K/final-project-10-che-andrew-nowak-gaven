@@ -142,19 +142,30 @@ void freqExtract(unsigned char* bytes){
 
 }
 
+void fileToString(int fd, char* s) {
+    int size = lseek(fd, 0, SEEK_END);
+    printf("%d", size);
+    s = malloc(size + 1);
+    lseek(fd, 0, SEEK_SET);
+    s[size] = '\0';
+    if(read(fd, s, size) < 0) err();
+    lseek(fd, 0, SEEK_SET);
+}
+
 int main(int argc, char* argv[]) {
     if(argc < 2) {
         printf("Please provide mode as an argument\n");
         return 1;
     }
     if(strcmp(argv[1], "encode") == 0) {
-        if(argc < 4) {
-            printf("ARGS should be \"[input file] [output file]\"\n");
+        if(argc < 5) {
+            printf("ARGS should be \"[input wav] [input file] [output wav]\"\n");
             return 1;
         }
         //printf("%s\n", argv[2]);
         int fd = open(argv[2], O_RDONLY);
-        int fdOut = open(argv[3], O_WRONLY | O_CREAT | O_TRUNC, 0600);
+        int fdMsg = open(argv[3], O_RDONLY);
+        int fdOut = open(argv[4], O_WRONLY | O_CREAT | O_TRUNC, 0600);
 
         if(fd < 0) err();
         if(fdOut < 0) err();
@@ -173,7 +184,9 @@ int main(int argc, char* argv[]) {
             printf("WAV file broken: data size incorrect");
             return 1;
         }
-        LSBinsert(bytes, dataSize, "hello world");
+        char* msg;
+        fileToString(fdMsg, msg);
+        LSBinsert(bytes, dataSize, msg);
         lseek(fd, 0, SEEK_SET);
         char buff[4];
         while( read(fd, buff, 2) ){
@@ -185,8 +198,10 @@ int main(int argc, char* argv[]) {
         //printf("%d\n", lseek(fdOut, 0, SEEK_CUR));
         write(fdOut, bytes, dataSize);
         close(fd);
+        close(fdMsg);
         close(fdOut);
         free(bytes);
+        free(msg);
     } else if(strcmp(argv[1], "decode") == 0) {
         if(argc < 3) {
             printf("ARGS should be \"[input file]\"\n");
