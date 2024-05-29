@@ -125,6 +125,14 @@ void LSBextract(unsigned char* bytes) {
     printf("\n");
 }
 
+void freqInsert(unsigned char* bytes, int length, char*msg, int freq){
+
+}
+
+void freqExtract(unsigned char* bytes){
+
+}
+
 int main(int argc, char* argv[]) {
     if(argc < 2) {
         printf("Please provide mode as an argument\n");
