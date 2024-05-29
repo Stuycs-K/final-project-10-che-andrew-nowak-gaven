@@ -8,7 +8,7 @@ Researched and tested spectogram audio analysis programs with Andrew. Also resea
 
 ### 5/23
 
-More research and more testing of the spectogram audio analysis programs with Andrew. Starting to implement byte editing of the data that controls the sound of the .wav file. 
+More research and more testing of the spectogram audio analysis programs with Andrew. Starting to implement byte editing of the data that controls the sound of the .wav file.
 
 ### 5/24
 
@@ -24,7 +24,7 @@ Continuing to research the frequency method and beginning to implement freqEncod
 
 ### 5/29
 
-Continuing to work on freqEncode and Decode.
+Continuing to work on freqEncode and Decode. freqEncode works for the 480hz file on the 240 band. Also cleaning up main.
 
 ## Andrew
 

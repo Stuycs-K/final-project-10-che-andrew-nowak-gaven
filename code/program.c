@@ -174,7 +174,7 @@ void freqExtract(unsigned char* bytes, int freq, int bitsPerSamplePerChannel){
     i += (int)(*(bytes + 2)) & 3;
     i = i << 2;
     i += (int)(*(bytes + 3)) & 3;
-    printf("%c", i);
+    printf("%d ", i);
     bytes+= (freqByteRate / 2);
   }
   printf("\n");
