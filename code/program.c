@@ -101,37 +101,40 @@ void drawGraph(unsigned char* bytes, int dataSize) {
     }
 }
 
-void LSBinsert(unsigned char* bytes, int length, char* msg) {
-    if(4 * strlen(msg) > length) {
+void LSBinsert(unsigned char* bytes, int length, unsigned char* msg, int msgLength) {
+    if(4 * msgLength > length) {
         printf("WAV file provided is too small to store data\n");
         exit(1);
     }
-    for(int i = 0; i <= strlen(msg); ++i) {
-        int val;
-        if(i == strlen(msg)) val = 0;
-        else val = (int)(msg[i]);
+    //printf("%d\n", *(int*)msg);
+    for(int i = 0; i < msgLength; ++i) {
+        unsigned char val = msg[i];
         bytes[4*i] = leastSigBit(bytes[4*i], 2, (val & 192) >> 6);
         bytes[4*i+1] = leastSigBit(bytes[4*i+1], 2, (val & 48) >> 4);
         bytes[4*i+2] = leastSigBit(bytes[4*i+2], 2, (val & 12) >> 2);
         bytes[4*i+3] = leastSigBit(bytes[4*i+3], 2, (val & 3));
+        if(i == 0) {
+            printf("%x\n", bytes[4*i]);
+            printf("%x\n", bytes[4*i+1]);
+            printf("%x\n", bytes[4*i+2]);
+            printf("%x\n", bytes[4*i+3]);
+            printf("%d", val);
+        }
     }
 }
 
-void LSBextract(unsigned char* bytes) {
-    int i = 1, pos = 0;
-    while(i) {
-        i = 0;
-        i += (int)(bytes[pos]) & 3;
-        i = i << 2;
-        i += (int)(bytes[pos+1]) & 3;
-        i = i << 2;
-        i += (int)(bytes[pos+2]) & 3;
-        i = i << 2;
-        i += (int)(bytes[pos+3]) & 3;
-        printf("%c", i);
-        pos += 4;
-    }
-    printf("\n");
+unsigned char* LSBextract(unsigned char* bytes) {
+    unsigned char size[4];
+    size[0] = bytes[1] & 3;
+    printf("%x\n", size[0]);
+    size[1] = bytes[0] & 3;
+    printf("%x\n", size[1]);
+    size[2] = bytes[3] & 3;
+    printf("%x\n", size[2]);
+    size[3] = bytes[2] & 3;
+    printf("%x\n", size[3]);
+    printf("%d", *(int*)(size));
+    return NULL;
 }
 
 void freqInsert(unsigned char* bytes, int length, char*msg, int freq){
@@ -141,17 +144,17 @@ void freqInsert(unsigned char* bytes, int length, char*msg, int freq){
 void freqExtract(unsigned char* bytes){
 
 }
-/*
-void fileToString(int fd, char* s) {
-    int size = lseek(fd, 0, SEEK_END);
-    printf("%d", size);
-    s = malloc(size + 1);
+
+int fileToBytes(int fd, unsigned char** bytes) {
+    int size = lseek(fd, 0, SEEK_END) + sizeof(int);
+    *bytes = malloc(size);
     lseek(fd, 0, SEEK_SET);
-    s[size] = '\0';
-    if(read(fd, s, size) < 0) err();
+    memcpy(*bytes, &size, sizeof(int));
+    if(read(fd, *bytes + sizeof(int), size) < 0) err();
     lseek(fd, 0, SEEK_SET);
+    return size;
 }
-*/
+
 int main(int argc, char* argv[]) {
     if(argc < 2) {
         printf("Please provide mode as an argument\n");
@@ -184,9 +187,9 @@ int main(int argc, char* argv[]) {
             printf("WAV file broken: data size incorrect");
             return 1;
         }
-        char* msg = "hello world";
-        //fileToString(fdMsg, msg);
-        LSBinsert(bytes, dataSize, msg);
+        unsigned char* msg;
+        int msgSize = fileToBytes(fdMsg, &msg);
+        LSBinsert(bytes, dataSize, msg, msgSize);
         lseek(fd, 0, SEEK_SET);
         char buff[4];
         while( read(fd, buff, 2) ){
