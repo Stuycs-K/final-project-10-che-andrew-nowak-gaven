@@ -130,13 +130,13 @@ int LSBextract(unsigned char* bytes, unsigned char** m) {
     unsigned char* msg = *m;
     for(int i = 0; i < size; ++i) {
         msg[i] = 0;
-        msg[i] += bytes[4*i+4] & 3;
+        msg[i] += bytes[4*i+16] & 3;
         msg[i] = msg[i] << 2;
-        msg[i] += bytes[4*i+5] & 3;
+        msg[i] += bytes[4*i+17] & 3;
         msg[i] = msg[i] << 2;
-        msg[i] += bytes[4*i+6] & 3;
+        msg[i] += bytes[4*i+18] & 3;
         msg[i] = msg[i] << 2;
-        msg[i] += bytes[4*i+7] & 3;
+        msg[i] += bytes[4*i+19] & 3;
     }
     return size;
 }
