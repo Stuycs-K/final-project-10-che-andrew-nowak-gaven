@@ -134,7 +134,7 @@ void LSBextract(unsigned char* bytes) {
     printf("\n");
 }
 
-void freqInsert(unsigned char* bytes, int length, char*msg, int freq, int bitsPerSamplePerChannel){
+void freqInsert(unsigned char* bytes, int length, char*msg, int freq, int sampleRate){
 
   if(4 * strlen(msg) > length) {
       printf("WAV file provided is too small to store data (freqInsert)\n");
@@ -147,14 +147,24 @@ void freqInsert(unsigned char* bytes, int length, char*msg, int freq, int bitsPe
 //every 8000th byte
 //of a 4 point sin wave change the 2 and 4th. Change it for BOTH channels.
 
-  int freqByteRate = freq * (bitsPerSamplePerChannel / 8) * 2;
-  int offset = (freqByteRate / 4);
-  bytes += offset;
+  int freqByteRate = sampleRate / freq;
+  printf("bits sample channel: %d\n", sampleRate);
+  printf("bytes rate: %d\n", freqByteRate);
   for (int n = 0; n <= strlen(msg); n++){
-    bytes += (freqByteRate / 2) ;
-    LSBinsert( bytes , length, &msg[n] );
-    bytes += (freqByteRate / 2) ;
-    LSBinsert( bytes , length, &msg[n] );
+    printf("%d\n", bytes[n * freqByteRate]);
+    printf("%d\n", bytes[n * freqByteRate + (freqByteRate / 4)]);
+    printf("%d\n", bytes[n * freqByteRate + (freqByteRate * 2/ 4)]);
+    printf("%d\n", bytes[n * freqByteRate + (freqByteRate*3 / 4)]);
+
+    bytes[n * freqByteRate + (freqByteRate / 4)] = 0;
+    bytes[n * freqByteRate + (freqByteRate*3 / 4)] = 0;
+
+    printf("%d\n", bytes[n * freqByteRate]);
+    printf("%d\n", bytes[n * freqByteRate + (freqByteRate / 4)]);
+    printf("%d\n", bytes[n * freqByteRate + (freqByteRate * 2/ 4)]);
+    printf("%d\n", bytes[n * freqByteRate + (freqByteRate*3 / 4)]);
+    printf("\n\n");
+
   }
 
 }
@@ -277,7 +287,7 @@ int main(int argc, char* argv[]) {
           printf("WAV file broken: data size incorrect");
           return 1;
       }
-      freqInsert(bytes, dataSize, "hello world", 240, a[1]);
+      freqInsert(bytes, dataSize, "hello world", 2000, a[0]);
       lseek(fd, 0, SEEK_SET);
       char buff[4];
       while( read(fd, buff, 2) ){
