@@ -147,7 +147,7 @@ int LSBextract(unsigned char* bytes, unsigned char** m) {
     }
     return size;
 }
-
+/*
 void freqInsert(unsigned char* bytes, int length, char*msg, int freq, int bitsPerSamplePerChannel){
 
   if(4 * strlen(msg) > length) {
@@ -195,7 +195,7 @@ void freqExtract(unsigned char* bytes, int freq, int bitsPerSamplePerChannel){
 
 
 }
-
+*/
 int fileToBytes(int fd, unsigned char** bytes) {
     int size = lseek(fd, 0, SEEK_END) + sizeof(int);
     *bytes = malloc(size);
@@ -286,6 +286,7 @@ int main(int argc, char* argv[]) {
         close(fd);
         free(bytes);
     }
+    /*
     else if(strcmp(argv[1], "freqEncode") == 0) {
       if(argc < 4) {
           printf("ARGS should be \"[input file] [output file]\"\n");
@@ -353,5 +354,6 @@ int main(int argc, char* argv[]) {
         close(fd);
         free(bytes);
     }
+    */
     //drawGraph(bytes, dataSize);
 }
