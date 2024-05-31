@@ -52,3 +52,11 @@ Wrote functions to insert and extract a string into/out of a WAV file's least si
 ### 5/28
 
 Separated encode and decode into two different targets and functions. Spent hours of homework time fixing a bug where I assumed the fmt subchunk was a multiple of 4 and then wrote a function to return sampleRate and bitsPerSample as well as dataSize.
+
+### 5/29
+
+Wrote a function for Gaven to get info about the wave. Fixed a bug where it assumed the fmt subchunk was first. Spent all homework time trying to fix LSBextract, couldn't do it.
+
+### 5/30
+
+Fixed two bugs with LSBextract, encoding and decoding now technically work but ruin the audio. I think it's because it turns 0s into non-0s so I tried making it only change non-0s but couldn't figure it out.
