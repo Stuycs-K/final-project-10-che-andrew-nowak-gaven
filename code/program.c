@@ -118,14 +118,21 @@ void LSBinsert(unsigned char* bytes, int length, unsigned char* msg, int msgLeng
 }
 
 int LSBextract(unsigned char* bytes, unsigned char** m) {
-    int size = 0;
-    size += bytes[0] & 3;
-    size = size << 2;
-    size += bytes[1] & 3;
-    size = size << 2;
-    size += bytes[2] & 3;
-    size = size << 2;
-    size += bytes[3] & 3;
+    unsigned char csize[4];
+    for(int i = 0; i < 4; ++i) {
+        csize[i] = 0;
+        csize[i] += bytes[4*i] & 3;
+        csize[i] = csize[i] << 2;
+        csize[i] += bytes[4*i+1] & 3;
+        csize[i] = csize[i] << 2;
+        csize[i] += bytes[4*i+2] & 3;
+        csize[i] = csize[i] << 2;
+        csize[i] += bytes[4*i+3] & 3;
+    }
+    int size = *(int*)csize;
+    size -= sizeof(int);
+    printf("%d", size);
+    fflush(stdout);
     *m = malloc(size);
     unsigned char* msg = *m;
     for(int i = 0; i < size; ++i) {
@@ -153,6 +160,7 @@ int fileToBytes(int fd, unsigned char** bytes) {
     int size = lseek(fd, 0, SEEK_END) + sizeof(int);
     *bytes = malloc(size);
     lseek(fd, 0, SEEK_SET);
+    printf("%d", size);
     memcpy(*bytes, &size, sizeof(int));
     //printf("a%d\n", **(int**)bytes);
     if(read(fd, *bytes + sizeof(int), size) < 0) err();
