@@ -26,6 +26,15 @@ Continuing to research the frequency method and beginning to implement freqEncod
 
 Continuing to work on freqEncode and Decode. freqEncode works for the 480hz file on the 240 band. Also cleaning up main.
 
+### 5/30
+
+Continuing to work on freqEncode and Decode. Helping Andrew debug lsb insert
+
+### 5/31
+
+freqEncode and decode working.
+
+
 ## Andrew
 
 ### 5/23
