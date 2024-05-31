@@ -134,14 +134,7 @@ void LSBextract(unsigned char* bytes) {
     printf("\n");
 }
 
-void freqInsert(unsigned char* bytes, int length, char*msg, int freq, int sampleRate){
-
-  if(4 * strlen(msg) > length) {
-      printf("WAV file provided is too small to store data (freqInsert)\n");
-      exit(1);
-  }
-
-  //assume two channels
+void freqInsert(unsigned char* bytes, char*msg, int freq, int sampleRate){
 
 //2000hz samples per sec * 2 bytes per sample per channel * 2 channel -> 8000 bytes per sec
 //every 8000th byte
@@ -151,41 +144,20 @@ void freqInsert(unsigned char* bytes, int length, char*msg, int freq, int sample
   printf("bits sample channel: %d\n", sampleRate);
   printf("bytes rate: %d\n", freqByteRate);
   for (int n = 0; n <= strlen(msg); n++){
-    printf("%d\n", bytes[n * freqByteRate]);
-    printf("%d\n", bytes[n * freqByteRate + (freqByteRate / 4)]);
-    printf("%d\n", bytes[n * freqByteRate + (freqByteRate * 2/ 4)]);
-    printf("%d\n", bytes[n * freqByteRate + (freqByteRate*3 / 4)]);
-
-    bytes[n * freqByteRate + (freqByteRate / 4)] = 0;
-    bytes[n * freqByteRate + (freqByteRate*3 / 4)] = 0;
-
-    printf("%d\n", bytes[n * freqByteRate]);
-    printf("%d\n", bytes[n * freqByteRate + (freqByteRate / 4)]);
-    printf("%d\n", bytes[n * freqByteRate + (freqByteRate * 2/ 4)]);
-    printf("%d\n", bytes[n * freqByteRate + (freqByteRate*3 / 4)]);
-    printf("\n\n");
-
+    bytes[(n * freqByteRate / 2) + (freqByteRate / 4)] = msg[n];
   }
 
 }
 
-void freqExtract(unsigned char* bytes, int freq, int bitsPerSamplePerChannel){
-  //assume two channels
-  int freqByteRate = freq * (bitsPerSamplePerChannel / 8) * 2;
-  int offset = (freqByteRate / 4);
-  bytes += offset;
-  int i = 1;
-  while(i){
-    i = 0;
-    i += (int)(*bytes) & 3;
-    i = i << 2;
-    i += (int)(*(bytes + 1)) & 3;
-    i = i << 2;
-    i += (int)(*(bytes + 2)) & 3;
-    i = i << 2;
-    i += (int)(*(bytes + 3)) & 3;
-    printf("%d ", i);
-    bytes+= (freqByteRate / 2);
+void freqExtract(unsigned char* bytes, int length, int freq, int sampleRate){
+
+  int freqByteRate = sampleRate / freq;
+  printf("bits sample channel: %d\n", sampleRate);
+  printf("bytes rate: %d\n", freqByteRate);
+  for (int n = 0; n <= length; n++){
+
+    printf("%c", bytes[(n * freqByteRate / 2) + (freqByteRate / 4)]);
+
   }
   printf("\n");
 
@@ -287,7 +259,7 @@ int main(int argc, char* argv[]) {
           printf("WAV file broken: data size incorrect");
           return 1;
       }
-      freqInsert(bytes, dataSize, "hello world", 2000, a[0]);
+      freqInsert(bytes, "hello world", 2000, a[0]);
       lseek(fd, 0, SEEK_SET);
       char buff[4];
       while( read(fd, buff, 2) ){
@@ -324,7 +296,7 @@ int main(int argc, char* argv[]) {
             return 1;
         }
         //printf("%d ", bytes[0]); printf("%d ", bytes[1]); printf("%d\n", bytes[2]);
-        freqExtract(bytes, 240, a[1]);
+        freqExtract(bytes, 11, 2000, a[0]);
         close(fd);
         free(bytes);
     }
