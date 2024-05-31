@@ -103,47 +103,42 @@ void drawGraph(unsigned char* bytes, int dataSize) {
 }
 
 void LSBinsert(unsigned char* bytes, int length, unsigned char* msg, int msgLength) {
-    if(4 * msgLength > length) {
+    if(16 * msgLength > length) {
         printf("WAV file provided is too small to store data\n");
         exit(1);
     }
     //printf("b%d\n", *(int*)msg);
     for(int i = 0; i < msgLength; ++i) {
         unsigned char val = msg[i];
-        bytes[4*i] = (bytes[4*i] & (!3)) + (val >> 6 & 3);
-        bytes[4*i+1] = (bytes[4*i+1] & (!3)) + (val >> 4 & 3);
-        bytes[4*i+2] = (bytes[4*i+2] & (!3)) + (val >> 2 & 3);
-        bytes[4*i+3] = (bytes[4*i+3] & (!3)) + (val & 3);
+        int* curr = (int*)(bytes) + 4 * i;
+        curr[i] = (curr[i] & (!3)) + (val >> 6 & 3);
+        curr[i+1] = (curr[i+1] & (!3)) + (val >> 4 & 3);
+        curr[i+2] = (curr[i+2] & (!3)) + (val >> 2 & 3);
+        curr[i+3] = (curr[i+3] & (!3)) + (val & 3);
     }
 }
 
 int LSBextract(unsigned char* bytes, unsigned char** m) {
-    unsigned char csize[4];
-    for(int i = 0; i < 4; ++i) {
-        csize[i] = 0;
-        csize[i] += bytes[4*i] & 3;
-        csize[i] = csize[i] << 2;
-        csize[i] += bytes[4*i+1] & 3;
-        csize[i] = csize[i] << 2;
-        csize[i] += bytes[4*i+2] & 3;
-        csize[i] = csize[i] << 2;
-        csize[i] += bytes[4*i+3] & 3;
+    int size = 0;
+    for(int i = 0; i < 1; ++i) {
+        int* curr = (int*)(bytes) + 4 * i;
+        memcpy(&size, )
     }
-    int size = *(int*)csize;
     size -= sizeof(int);
     printf("%d", size);
     fflush(stdout);
     *m = malloc(size);
     unsigned char* msg = *m;
     for(int i = 0; i < size; ++i) {
+        unsigned char temp[4];
         msg[i] = 0;
-        msg[i] += bytes[4*i+16] & 3;
+        msg[i] += bytes[8*i+32] & 3;
         msg[i] = msg[i] << 2;
-        msg[i] += bytes[4*i+17] & 3;
+        msg[i] += bytes[8*i+34] & 3;
         msg[i] = msg[i] << 2;
-        msg[i] += bytes[4*i+18] & 3;
+        msg[i] += bytes[8*i+36] & 3;
         msg[i] = msg[i] << 2;
-        msg[i] += bytes[4*i+19] & 3;
+        msg[i] += bytes[8*i+38] & 3;
     }
     return size;
 }
