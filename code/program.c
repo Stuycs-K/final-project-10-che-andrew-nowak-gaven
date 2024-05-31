@@ -155,23 +155,39 @@ void freqInsert(unsigned char* bytes, char*msg, int freq, int sampleRate){
 //of a 4 point sin wave change the 2 and 4th. Change it for BOTH channels.
 
   int freqByteRate = sampleRate / freq;
-  printf("bits sample channel: %d\n", sampleRate);
-  printf("bytes rate: %d\n", freqByteRate);
-  for (int n = 0; n <= strlen(msg); n++){
+  //printf("Sample Rate: %d\n", sampleRate);
+  //printf("Byte Rate: %d\n", freqByteRate);
+
+
+  for (int n = 4; n - 4 <= strlen(msg); n++){
     bytes[(n * freqByteRate / 2) + (freqByteRate / 4)] = msg[n];
+
+    if(n == strlen(msg)){
+      for (int i = 0; i < 4; i++){ //encoding the size into the first four bytes
+        bytes[(i * freqByteRate / 2) + (freqByteRate / 4)] = n / pow(2, (32 - (i*8)));
+        printf("%d\n",n / pow(2, (32 - (i*8) )));
+      }
+      printf("Encoded %d bytes.\n", n);
+
+    }
   }
+
 
 }
 
-void freqExtract(unsigned char* bytes, int length, int freq, int sampleRate){
+void freqExtract(unsigned char* bytes, int freq, int sampleRate){
 
   int freqByteRate = sampleRate / freq;
   printf("bits sample channel: %d\n", sampleRate);
   printf("bytes rate: %d\n", freqByteRate);
-  for (int n = 0; n <= length; n++){
 
+  int totalBytes = 0;
+  for (int i = 0; i < 4; i++){ //decoding the size from the first four bytes
+    totalBytes += pow(2, (32 - (i * 8))) * bytes[(i * freqByteRate / 2) + (freqByteRate / 4)];
+  }
+  printf("Total Bytes Encoded: %d\n", totalBytes);
+  for (int n = 4; n <= totalBytes; n++){
     printf("%c", bytes[(n * freqByteRate / 2) + (freqByteRate / 4)]);
-
   }
   printf("\n");
 
@@ -332,7 +348,7 @@ int main(int argc, char* argv[]) {
             return 1;
         }
         //printf("%d ", bytes[0]); printf("%d ", bytes[1]); printf("%d\n", bytes[2]);
-        freqExtract(bytes, 11, 2000, a[0]);
+        freqExtract(bytes, 2000, a[0]);
         close(fd);
         free(bytes);
     }
