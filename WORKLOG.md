@@ -34,6 +34,10 @@ Continuing to work on freqEncode and Decode. Helping Andrew debug lsb insert
 
 freqEncode and decode working.
 
+### 6/2
+
+byte diff function working also made makefile get rid of temp output files
+
 
 ## Andrew
 
