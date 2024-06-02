@@ -10,6 +10,8 @@ freqEncode: program
 	@./program freqEncode $(ARGS)
 freqDecode: program
 	@./program freqDecode $(ARGS)
+diff: program
+	@./program diff $(ARGS)
 clean:
 	@rm -f *.o
 	@rm -f program

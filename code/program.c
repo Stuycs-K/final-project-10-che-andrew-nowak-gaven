@@ -178,6 +178,30 @@ void freqExtract(unsigned char* bytes, int length, int freq, int sampleRate){
 
 }
 
+//'d' for difference mode  ->  returns the difference of the two file bytes
+//'l' for literal mode  ->  returns the new value if the new value is different than the original
+int bytesDiff(unsigned char* orig, unsigned char* new, int length, char mode, unsigned char* diffs){
+  unsigned char difference;
+  int diffsIndex = 0;
+
+  for(int n = 0; n < length; n++){
+    difference = abs(orig[n] - new[n]);
+    if(difference == 0){
+      continue;
+    }
+    if(mode == 'd'){
+      diffs[diffsIndex] = difference;
+      diffsIndex++;
+    }
+    else if(mode == 'l'){
+      diffs[diffsIndex] = new[n];
+      diffsIndex++;
+    }
+  }
+
+  return diffsIndex;
+}
+
 int fileToBytes(int fd, unsigned char** bytes) {
     int size = lseek(fd, 0, SEEK_END) + sizeof(int);
     *bytes = malloc(size);
@@ -335,5 +359,58 @@ int main(int argc, char* argv[]) {
         freqExtract(bytes, 11, 2000, a[0]);
         close(fd);
         free(bytes);
+    }
+    else if(strcmp(argv[1], "diff") == 0) {
+      if(argc < 5) {
+          printf("ARGS should be \"[original file] [new file] [output file]\"\n");
+          return 1;
+      }
+      //printf("%s\n", argv[2]);
+      int fdOrig = open(argv[2], O_RDONLY);
+      int fdNew = open(argv[3], O_RDONLY);
+      int fdOut = open(argv[4], O_WRONLY | O_CREAT | O_TRUNC, 0600);
+
+      if(fdOrig < 0) err();
+      if(fdOut < 0) err();
+
+      //creating the out file wav and copying everything from chunkID to DATA .wav metadata
+      int* a = checkWavMore(fdOrig);
+      if(a == NULL) {
+          printf("File provided does not appear to be in WAV format (orig).\n");
+          return 1;
+      }
+      int* b = checkWavMore(fdNew);
+      if(b == NULL) {
+          printf("File provided does not appear to be in WAV format (new).\n");
+          return 1;
+      }
+      //printf("%d %d\n", a[0], a[1]);
+      int dataSizeOrig = a[2];
+      int dataSizeNew = b[2];
+
+      unsigned char* bytesOrig = malloc(dataSizeOrig);
+      unsigned char* bytesNew = malloc(dataSizeNew);
+
+      if(read(fdOrig, bytesOrig, dataSizeOrig) < dataSizeOrig) {
+          printf("WAV file broken: data size incorrect");
+          return 1;
+      }
+      if(read(fdNew, bytesNew, dataSizeNew) < dataSizeNew) {
+          printf("WAV file broken: data size incorrect");
+          return 1;
+      }
+
+      unsigned char* diffs = malloc(dataSizeOrig);
+      int diffSize;
+      diffSize = bytesDiff(bytesOrig, bytesNew, dataSizeOrig, 'l', diffs);
+
+
+      write(fdOut, &diffs, diffSize);
+      close(fdNew);
+      close(fdOrig);
+      close(fdOut);
+      free(bytesOrig);
+      free(bytesNew);
+      free(diffs);
     }
 }
