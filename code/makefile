@@ -16,3 +16,4 @@ clean:
 	@rm -f *.o
 	@rm -f program
 	@rm -f *.wav
+	@rm -f output.*

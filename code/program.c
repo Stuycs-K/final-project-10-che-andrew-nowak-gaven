@@ -189,16 +189,19 @@ int bytesDiff(unsigned char* orig, unsigned char* new, int length, char mode, un
     if(difference == 0){
       continue;
     }
+
     if(mode == 'd'){
+      //printf("%x", difference);
       diffs[diffsIndex] = difference;
       diffsIndex++;
     }
     else if(mode == 'l'){
+      //printf("%x", new[n]);
       diffs[diffsIndex] = new[n];
       diffsIndex++;
     }
   }
-
+  //printf("\n");
   return diffsIndex;
 }
 
@@ -403,9 +406,11 @@ int main(int argc, char* argv[]) {
       unsigned char* diffs = malloc(dataSizeOrig);
       int diffSize;
       diffSize = bytesDiff(bytesOrig, bytesNew, dataSizeOrig, 'l', diffs);
+      printf("Size of diff: %d\n", diffSize);
 
 
-      write(fdOut, &diffs, diffSize);
+
+      write(fdOut, &diffs[0], diffSize);
       close(fdNew);
       close(fdOrig);
       close(fdOut);
