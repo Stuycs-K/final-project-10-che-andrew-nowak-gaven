@@ -218,8 +218,15 @@ int fileToBytes(int fd, unsigned char** bytes) {
 }
 
 void bitResample(unsigned char* bytes, char mode, unsigned short bitsPerSample){
-  bytes -= 4;
-  printf("%c\n\n, new: %hu", *bytes, bitsPerSample);
+  bytes--;
+  bytes--;
+  bytes--;
+  bytes--;
+  bytes--;
+  bytes--;
+  bytes--;
+  bytes--;
+  printf("%hu\n\n, new: %hu", *bytes, bitsPerSample);
 
   return;
 }
