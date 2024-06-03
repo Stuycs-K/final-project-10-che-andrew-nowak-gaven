@@ -12,6 +12,8 @@ freqDecode: program
 	@./program freqDecode $(ARGS)
 diff: program
 	@./program diff $(ARGS)
+bitResample: program
+	@./program bitResample $(ARGS)
 clean:
 	@rm -f *.o
 	@rm -f program

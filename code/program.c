@@ -217,13 +217,13 @@ int fileToBytes(int fd, unsigned char** bytes) {
     return size;
 }
 
-void resampleLiteral(unsigned char* bytes){
+void bitResample(unsigned char* bytes, char mode, unsigned short bitsPerSample){
+  bytes -= 4;
+  printf("%c\n\n, new: %hu", *bytes, bitsPerSample);
+
   return;
 }
 
-void resampleAdjust(unsigned char* bytes){
-  return;
-}
 
 int main(int argc, char* argv[]) {
     if(argc < 2) {
@@ -426,6 +426,44 @@ int main(int argc, char* argv[]) {
       free(bytesNew);
       free(diffs);
     }
+
+
+    else if(strcmp(argv[1], "bitResample") == 0) {
+      if(argc < 4) {
+          printf("ARGS should be \"[original file] [output file]\"\n");
+          return 1;
+      }
+      //printf("%s\n", argv[2]);
+      int fdOrig = open(argv[2], O_RDONLY);
+      int fdOut = open(argv[3], O_WRONLY | O_CREAT | O_TRUNC, 0600);
+
+      if(fdOrig < 0) err();
+      if(fdOut < 0) err();
+
+      //creating the out file wav and copying everything from chunkID to DATA .wav metadata
+      int* a = checkWavMore(fdOrig);
+      if(a == NULL) {
+          printf("File provided does not appear to be in WAV format (orig).\n");
+          return 1;
+      }
+      //printf("%d %d\n", a[0], a[1]);
+      int dataSizeOrig = a[2];
+
+      unsigned char* bytesOrig = malloc(dataSizeOrig);
+
+
+      if(read(fdOrig, bytesOrig, dataSizeOrig) < dataSizeOrig) {
+          printf("WAV file broken: data size incorrect");
+          return 1;
+      }
+
+
+      bitResample(bytesOrig, 'l', 32);
+
+      close(fdOrig);
+      close(fdOut);
+      free(bytesOrig);
+    }
 }
 
 
@@ -444,6 +482,8 @@ To do:
 - Create a shift polarity function that can shift a polarity of a sound on one channel
 
 - figure out if we can do a spectogram image hider but do it in C somehow
+
+- create a channel ecoded thing by shoving data into channels that don't exist usually (like 12 channels)
 
 
 
