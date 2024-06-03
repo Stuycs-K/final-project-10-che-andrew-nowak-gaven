@@ -109,36 +109,41 @@ void LSBinsert(unsigned char* bytes, int length, unsigned char* msg, int msgLeng
     }
     //printf("b%d\n", *(int*)msg);
     for(int i = 0; i < msgLength; ++i) {
+        printf("%d\n", msg[i]);
         unsigned char val = msg[i];
-        int* curr = (int*)(bytes) + 4 * i;
-        curr[i] = (curr[i] & (!3)) + (val >> 6 & 3);
-        curr[i+1] = (curr[i+1] & (!3)) + (val >> 4 & 3);
-        curr[i+2] = (curr[i+2] & (!3)) + (val >> 2 & 3);
-        curr[i+3] = (curr[i+3] & (!3)) + (val & 3);
+        bytes[16*i] = bytes[16*i] & (!3) + (msg[i] >> 6 & 3);
+        bytes[16*i+4] = (bytes[16*i+4] & (!3)) + (msg[i] >> 4 & 3);
+        bytes[16*i+8] = (bytes[16*i+8] & (!3)) + (msg[i] >> 2 & 3);
+        bytes[16*i+12] = (bytes[16*i+12] & (!3)) + (msg[i] & 3);
     }
 }
 
 int LSBextract(unsigned char* bytes, unsigned char** m) {
-    int size = 0;
-    for(int i = 0; i < 1; ++i) {
-        int* curr = (int*)(bytes) + 4 * i;
-        memcpy(&size, )
+    unsigned char csize[4];
+    for(int i = 0; i < 4; ++i) {
+        csize[i] += bytes[16*i] & 3;
+        csize[i] = csize[i] << 2;
+        csize[i] += bytes[16*i+4] & 3;
+        csize[i] = csize[i] << 2;
+        csize[i] += bytes[16*i+8] & 3;
+        csize[i] = csize[i] << 2;
+        csize[i] += bytes[16*i+12] & 3;
     }
+    int* psize = (int*)csize;
+    int size = *psize;
     size -= sizeof(int);
     printf("%d", size);
     fflush(stdout);
     *m = malloc(size);
     unsigned char* msg = *m;
-    for(int i = 0; i < size; ++i) {
-        unsigned char temp[4];
-        msg[i] = 0;
-        msg[i] += bytes[8*i+32] & 3;
+    for(int i = 5; i < size; ++i) {
+        msg[i] += bytes[16*i] & 3;
         msg[i] = msg[i] << 2;
-        msg[i] += bytes[8*i+34] & 3;
+        msg[i] += bytes[16*i+4] & 3;
         msg[i] = msg[i] << 2;
-        msg[i] += bytes[8*i+36] & 3;
+        msg[i] += bytes[16*i+8] & 3;
         msg[i] = msg[i] << 2;
-        msg[i] += bytes[8*i+38] & 3;
+        msg[i] += bytes[16*i+12] & 3;
     }
     return size;
 }
