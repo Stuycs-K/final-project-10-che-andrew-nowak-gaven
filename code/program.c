@@ -217,6 +217,14 @@ int fileToBytes(int fd, unsigned char** bytes) {
     return size;
 }
 
+void resampleLiteral(unsigned char* bytes){
+  return;
+}
+
+void resampleAdjust(unsigned char* bytes){
+  return;
+}
+
 int main(int argc, char* argv[]) {
     if(argc < 2) {
         printf("Please provide mode as an argument\n");
@@ -419,3 +427,26 @@ int main(int argc, char* argv[]) {
       free(diffs);
     }
 }
+
+
+
+/*
+
+To do:
+
+- Incporate LSB into freqEncode and insertion into encode
+
+- Create a 'resample' function because we can encode information that is usually 32 bit into 16 bit or vice versa
+  (similar to the Asian character ASCII 32/16 bit encoding)
+   ^  Should have a 'literal' mode and a 'adjust' mode: Literal just smashes the bytes together but recompile will re-adjust
+      the values to be consistant with the orignal .wav
+
+- Create a shift polarity function that can shift a polarity of a sound on one channel
+
+- figure out if we can do a spectogram image hider but do it in C somehow
+
+
+
+
+
+*/

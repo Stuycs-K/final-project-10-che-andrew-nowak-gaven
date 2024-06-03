@@ -38,6 +38,10 @@ freqEncode and decode working.
 
 byte diff function working also made makefile get rid of temp output files
 
+### 6/3
+
+Working on a 'resample' function to help hide data via the combination/seperation of bytes in the bit sample rate
+
 
 ## Andrew
 
