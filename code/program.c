@@ -242,7 +242,7 @@ void bitResample(int fd, char mode, unsigned short newBitsPerSample){
 
 
   unsigned short bitSampleRate = 0;
-  lseek(fd, -6, SEEK_CUR);
+  lseek(fd, dataIndex - 2, SEEK_SET);
   read(fd, &bitSampleRate, sizeof(unsigned short));
 
   printf("OG BIT RATE: %hu\n", bitSampleRate);
@@ -254,17 +254,17 @@ void bitResample(int fd, char mode, unsigned short newBitsPerSample){
   }
 
   float ratio = (float) newBitsPerSample / (float) bitSampleRate;
-  //lseek(fd, -2, SEEK_CUR);
+  lseek(fd, dataIndex - 2, SEEK_SET);
   write(fd, &newBitsPerSample, sizeof(unsigned short));
 
   int byteRate;
-  lseek(fd, -6, SEEK_CUR);
+  lseek(fd, dataIndex - 8, SEEK_SET);
   read(fd, &byteRate, sizeof(int));
   printf("OG BYTE RATE: %d\n", byteRate);
 
   byteRate =(int) ((float) byteRate * ratio);
 
-  //lseek(fd, -4, SEEK_CUR);
+  lseek(fd, dataIndex - 8, SEEK_SET);
   write(fd, &byteRate, sizeof(int));
   printf("NEW BYTE RATE: %d\n", byteRate);
 
