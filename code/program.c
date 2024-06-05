@@ -223,11 +223,26 @@ void bitResample(int fd, char mode, unsigned short newBitsPerSample){
   // for(int n = 0; n < 200; n++){
   //   printf("%d: %x, new: %hu\n", n, bytes[n], bitsPerSample);
   // }
+  lseek(fd, 0, SEEK_SET);
+  int dataIndex = 0;
+  unsigned int* bytes = malloc(sizeof(unsigned int));
+
+
+  while(read(fd, bytes, sizeof(unsigned int))){
+    printf("bytes: %x\n", bytes[0] );
+    if(*bytes == 1684108385){ //'data' but in int lol
+      break;
+
+    }
+    dataIndex += sizeof(unsigned int);
+  //  printf("%d,[\n", dataIndex);
+  }
+
 
 
 
   unsigned short bitSampleRate = 0;
-  lseek(fd, 34, SEEK_SET);
+  lseek(fd, -2, SEEK_CUR);
   read(fd, &bitSampleRate, sizeof(unsigned short));
 
   printf("OG BIT RATE: %hu\n", bitSampleRate);
@@ -238,15 +253,18 @@ void bitResample(int fd, char mode, unsigned short newBitsPerSample){
     return;
   }
 
-  float ratio = newBitsPerSample / bitSampleRate;
+  float ratio = (float) newBitsPerSample / (float) bitSampleRate;
+  //lseek(fd, -2, SEEK_CUR);
   write(fd, &newBitsPerSample, sizeof(unsigned short));
 
   int byteRate;
-  lseek(fd, 28, SEEK_SET);
+  lseek(fd, -4, SEEK_CUR);
   read(fd, &byteRate, sizeof(int));
   printf("OG BYTE RATE: %d\n", byteRate);
 
-  byteRate *= ratio;
+  byteRate =(int) ((float) byteRate * ratio);
+
+  //lseek(fd, -4, SEEK_CUR);
   write(fd, &byteRate, sizeof(int));
   printf("NEW BYTE RATE: %d\n", byteRate);
 
@@ -472,9 +490,9 @@ int main(int argc, char* argv[]) {
       if(fdOut < 0) err();
 
 
-      char* bytes = malloc(sizeof(char));
-      while(read(fd, bytes, sizeof(char))){
-        write(fdOut, bytes, sizeof(char));
+      char* bytes = malloc(1000);
+      while(read(fd, bytes, 1000)){
+        write(fdOut, bytes, 1000);
       }
 
 
