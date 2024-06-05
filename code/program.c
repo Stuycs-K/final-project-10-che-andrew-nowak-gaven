@@ -109,12 +109,22 @@ void LSBinsert(unsigned char* bytes, int length, unsigned char* msg, int msgLeng
     }
     //printf("b%d\n", *(int*)msg);
     for(int i = 0; i < msgLength; ++i) {
-        printf("%d\n", msg[i]);
+        //printf("%d\n", msg[i]);
         unsigned char val = msg[i];
-        bytes[16*i] = bytes[16*i] & (!3) + (msg[i] >> 6 & 3);
+        bytes[16*i] = (bytes[16*i] & (!3)) + (msg[i] >> 6 & 3);
         bytes[16*i+4] = (bytes[16*i+4] & (!3)) + (msg[i] >> 4 & 3);
         bytes[16*i+8] = (bytes[16*i+8] & (!3)) + (msg[i] >> 2 & 3);
         bytes[16*i+12] = (bytes[16*i+12] & (!3)) + (msg[i] & 3);
+
+        unsigned char mmsg;
+        mmsg = bytes[16*i] & 3;
+        mmsg = mmsg << 2;
+        mmsg += bytes[16*i+4] & 3;
+        mmsg = mmsg << 2;
+        mmsg += bytes[16*i+8] & 3;
+        mmsg = mmsg << 2;
+        mmsg += bytes[16*i+12] & 3;
+        //printf("%d\n", mmsg);
     }
 }
 
@@ -132,18 +142,19 @@ int LSBextract(unsigned char* bytes, unsigned char** m) {
     int* psize = (int*)csize;
     int size = *psize;
     size -= sizeof(int);
-    printf("%d", size);
+    //printf("%d", size);
     fflush(stdout);
     *m = malloc(size);
     unsigned char* msg = *m;
-    for(int i = 5; i < size; ++i) {
-        msg[i] += bytes[16*i] & 3;
+    for(int i = 0; i < size; ++i) {
+        msg[i] = bytes[16*i+64] & 3;
         msg[i] = msg[i] << 2;
-        msg[i] += bytes[16*i+4] & 3;
+        msg[i] += bytes[16*i+68] & 3;
         msg[i] = msg[i] << 2;
-        msg[i] += bytes[16*i+8] & 3;
+        msg[i] += bytes[16*i+72] & 3;
         msg[i] = msg[i] << 2;
-        msg[i] += bytes[16*i+12] & 3;
+        msg[i] += bytes[16*i+76] & 3;
+        //printf("%d\n", msg[i]);
     }
     return size;
 }
@@ -200,7 +211,7 @@ int fileToBytes(int fd, unsigned char** bytes) {
     int size = lseek(fd, 0, SEEK_END) + sizeof(int);
     *bytes = malloc(size);
     lseek(fd, 0, SEEK_SET);
-    printf("%d", size);
+    //printf("%d", size);
     memcpy(*bytes, &size, sizeof(int));
     //printf("a%d\n", **(int**)bytes);
     if(read(fd, *bytes + sizeof(int), size) < 0) err();
