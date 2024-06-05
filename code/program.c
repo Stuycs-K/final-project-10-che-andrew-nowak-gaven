@@ -274,6 +274,32 @@ void bitResample(int fd, char mode, unsigned short newBitsPerSample){
 }
 
 
+// int channelWrite(unsigned char* bytes, unsigned char* data, int length, int bitsPerSample, short channelAmount, short channel){
+//   data = malloc(length * sizeof(unsigned char) *)
+//
+//   int bytesPerSample = bitsPerSample / 8;
+//   printf("bytes per sample: %d\n", bytesPerSample);
+//
+//
+//
+//   for(int n = 0; n < length; n++){
+//
+//   }
+//
+// }
+
+void channelRead(unsigned char* bytes, int length, int bitsPerSample, short channel){
+  int bytesPerSample = bitsPerSample / 8;
+  printf("bytes per sample: %d\n", bytesPerSample);
+
+  for (int n = 0; n < length; n++){
+    if (n % bytesPerSample == 0){
+      printf("%02x", bytes[n]);
+    }
+  }
+}
+
+
 int main(int argc, char* argv[]) {
     if(argc < 2) {
         printf("Please provide mode as an argument\n");
@@ -500,6 +526,36 @@ int main(int argc, char* argv[]) {
 
       close(fd);
       close(fdOut);
+      free(bytes);
+    }
+
+    else if(strcmp(argv[1], "channelRead") == 0) {
+      if(argc < 3) {
+          printf("ARGS should be \"[original file]\"\n");
+          return 1;
+      }
+      //printf("%s\n", argv[2]);
+      int fd = open(argv[2], O_RDONLY);
+      if(fd < 0) err();
+      int* a = checkWavMore(fd);
+      if(a == NULL) {
+          printf("File provided does not appear to be in WAV format.\n");
+          return 1;
+      }
+      //doesn't work with the "JUNK" chunk in inst_test_mono and stereo
+      //printf("%d %d\n", a[0], a[1]);
+      int dataSize = a[2];
+      unsigned char* bytes = malloc(dataSize);
+      //printf("%d\n", lseek(fd, 0, SEEK_CUR));
+      if(read(fd, bytes, dataSize) < dataSize) {
+          printf("WAV broken\n");
+          return 1;
+      }
+
+      channelRead(bytes, dataSize, a[1], 2);
+
+
+      close(fd);
       free(bytes);
     }
 }

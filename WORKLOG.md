@@ -45,6 +45,9 @@ Working on a 'resample' function to help hide data via the combination/seperatio
 ### 6/4
 Continuing resample. still doesn't work but good progress
 
+### 6/5
+resample almost done and working on channelRead and write
+
 
 ## Andrew
 
