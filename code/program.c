@@ -103,47 +103,58 @@ void drawGraph(unsigned char* bytes, int dataSize) {
 }
 
 void LSBinsert(unsigned char* bytes, int length, unsigned char* msg, int msgLength) {
-    if(4 * msgLength > length) {
+    if(16 * msgLength > length) {
         printf("WAV file provided is too small to store data\n");
         exit(1);
     }
     //printf("b%d\n", *(int*)msg);
     for(int i = 0; i < msgLength; ++i) {
+        //printf("%d\n", msg[i]);
         unsigned char val = msg[i];
-        bytes[4*i] = (bytes[4*i] & (!3)) + (val >> 6 & 3);
-        bytes[4*i+1] = (bytes[4*i+1] & (!3)) + (val >> 4 & 3);
-        bytes[4*i+2] = (bytes[4*i+2] & (!3)) + (val >> 2 & 3);
-        bytes[4*i+3] = (bytes[4*i+3] & (!3)) + (val & 3);
+        bytes[16*i] = (bytes[16*i] & (!3)) + (msg[i] >> 6 & 3);
+        bytes[16*i+4] = (bytes[16*i+4] & (!3)) + (msg[i] >> 4 & 3);
+        bytes[16*i+8] = (bytes[16*i+8] & (!3)) + (msg[i] >> 2 & 3);
+        bytes[16*i+12] = (bytes[16*i+12] & (!3)) + (msg[i] & 3);
+
+        unsigned char mmsg;
+        mmsg = bytes[16*i] & 3;
+        mmsg = mmsg << 2;
+        mmsg += bytes[16*i+4] & 3;
+        mmsg = mmsg << 2;
+        mmsg += bytes[16*i+8] & 3;
+        mmsg = mmsg << 2;
+        mmsg += bytes[16*i+12] & 3;
+        //printf("%d\n", mmsg);
     }
 }
 
 int LSBextract(unsigned char* bytes, unsigned char** m) {
     unsigned char csize[4];
     for(int i = 0; i < 4; ++i) {
-        csize[i] = 0;
-        csize[i] += bytes[4*i] & 3;
+        csize[i] += bytes[16*i] & 3;
         csize[i] = csize[i] << 2;
-        csize[i] += bytes[4*i+1] & 3;
+        csize[i] += bytes[16*i+4] & 3;
         csize[i] = csize[i] << 2;
-        csize[i] += bytes[4*i+2] & 3;
+        csize[i] += bytes[16*i+8] & 3;
         csize[i] = csize[i] << 2;
-        csize[i] += bytes[4*i+3] & 3;
+        csize[i] += bytes[16*i+12] & 3;
     }
-    int size = *(int*)csize;
+    int* psize = (int*)csize;
+    int size = *psize;
     size -= sizeof(int);
-    printf("%d", size);
+    //printf("%d", size);
     fflush(stdout);
     *m = malloc(size);
     unsigned char* msg = *m;
     for(int i = 0; i < size; ++i) {
-        msg[i] = 0;
-        msg[i] += bytes[4*i+16] & 3;
+        msg[i] = bytes[16*i+64] & 3;
         msg[i] = msg[i] << 2;
-        msg[i] += bytes[4*i+17] & 3;
+        msg[i] += bytes[16*i+68] & 3;
         msg[i] = msg[i] << 2;
-        msg[i] += bytes[4*i+18] & 3;
+        msg[i] += bytes[16*i+72] & 3;
         msg[i] = msg[i] << 2;
-        msg[i] += bytes[4*i+19] & 3;
+        msg[i] += bytes[16*i+76] & 3;
+        //printf("%d\n", msg[i]);
     }
     return size;
 }
@@ -209,7 +220,7 @@ int fileToBytes(int fd, unsigned char** bytes) {
     int size = lseek(fd, 0, SEEK_END) + sizeof(int);
     *bytes = malloc(size);
     lseek(fd, 0, SEEK_SET);
-    printf("%d", size);
+    //printf("%d", size);
     memcpy(*bytes, &size, sizeof(int));
     //printf("a%d\n", **(int**)bytes);
     if(read(fd, *bytes + sizeof(int), size) < 0) err();
