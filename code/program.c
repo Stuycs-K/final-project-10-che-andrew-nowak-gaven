@@ -110,7 +110,6 @@ void LSBinsert(unsigned char* bytes, int length, unsigned char* msg, int msgLeng
     //printf("b%d\n", *(int*)msg);
     for(int i = 0; i < msgLength; ++i) {
         //printf("%d\n", msg[i]);
-        unsigned char val = msg[i];
         bytes[16*i] = (bytes[16*i] & (!3)) + (msg[i] >> 6 & 3);
         bytes[16*i+4] = (bytes[16*i+4] & (!3)) + (msg[i] >> 4 & 3);
         bytes[16*i+8] = (bytes[16*i+8] & (!3)) + (msg[i] >> 2 & 3);
