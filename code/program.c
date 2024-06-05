@@ -229,8 +229,8 @@ void bitResample(int fd, char mode, unsigned short newBitsPerSample){
 
 
   while(read(fd, bytes, sizeof(unsigned int))){
-    printf("bytes: %x\n", bytes[0] );
-    if(*bytes == 1684108385){ //'data' but in int lol
+  //  printf("%d: bytes: %u\n", dataIndex, bytes[0] );
+    if(*bytes == 1635017060){ //'data' but in int lol 6461 7461 -> 61 74 61 64 -> 1635017060
       break;
 
     }
@@ -242,7 +242,7 @@ void bitResample(int fd, char mode, unsigned short newBitsPerSample){
 
 
   unsigned short bitSampleRate = 0;
-  lseek(fd, -2, SEEK_CUR);
+  lseek(fd, -6, SEEK_CUR);
   read(fd, &bitSampleRate, sizeof(unsigned short));
 
   printf("OG BIT RATE: %hu\n", bitSampleRate);
@@ -258,7 +258,7 @@ void bitResample(int fd, char mode, unsigned short newBitsPerSample){
   write(fd, &newBitsPerSample, sizeof(unsigned short));
 
   int byteRate;
-  lseek(fd, -4, SEEK_CUR);
+  lseek(fd, -6, SEEK_CUR);
   read(fd, &byteRate, sizeof(int));
   printf("OG BYTE RATE: %d\n", byteRate);
 
