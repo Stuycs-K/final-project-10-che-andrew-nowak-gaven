@@ -217,16 +217,40 @@ int fileToBytes(int fd, unsigned char** bytes) {
     return size;
 }
 
-void bitResample(unsigned char* bytes, char mode, unsigned short bitsPerSample){
-  bytes--;
-  bytes--;
-  bytes--;
-  bytes--;
-  bytes--;
-  bytes--;
-  bytes--;
-  bytes--;
-  printf("%hu\n\n, new: %hu", *bytes, bitsPerSample);
+
+//fd needs read and write
+void bitResample(int fd, char mode, unsigned short newBitsPerSample){
+  // for(int n = 0; n < 200; n++){
+  //   printf("%d: %x, new: %hu\n", n, bytes[n], bitsPerSample);
+  // }
+
+
+
+  unsigned short bitSampleRate = 0;
+  lseek(fd, 34, SEEK_SET);
+  read(fd, &bitSampleRate, sizeof(unsigned short));
+
+  printf("OG BIT RATE: %hu\n", bitSampleRate);
+  printf("NEW BIT RATE: %hu\n", newBitsPerSample);
+
+  if(bitSampleRate == 0){
+    printf("\n\nWARNING BITSAMPLERATE == 0 in BIT REAMPLE NOT GOOD!\n\n\n");
+    return;
+  }
+
+  float ratio = newBitsPerSample / bitSampleRate;
+  write(fd, &newBitsPerSample, sizeof(unsigned short));
+
+  int byteRate;
+  lseek(fd, 28, SEEK_SET);
+  read(fd, &byteRate, sizeof(int));
+  printf("OG BYTE RATE: %d\n", byteRate);
+
+  byteRate *= ratio;
+  write(fd, &byteRate, sizeof(int));
+  printf("NEW BYTE RATE: %d\n", byteRate);
+
+
 
   return;
 }
@@ -441,35 +465,24 @@ int main(int argc, char* argv[]) {
           return 1;
       }
       //printf("%s\n", argv[2]);
-      int fdOrig = open(argv[2], O_RDONLY);
-      int fdOut = open(argv[3], O_WRONLY | O_CREAT | O_TRUNC, 0600);
+      int fd = open(argv[2], O_RDWR);
+      int fdOut = open(argv[3], O_RDWR | O_CREAT | O_TRUNC, 0600);
 
-      if(fdOrig < 0) err();
+      if(fd < 0) err();
       if(fdOut < 0) err();
 
-      //creating the out file wav and copying everything from chunkID to DATA .wav metadata
-      int* a = checkWavMore(fdOrig);
-      if(a == NULL) {
-          printf("File provided does not appear to be in WAV format (orig).\n");
-          return 1;
-      }
-      //printf("%d %d\n", a[0], a[1]);
-      int dataSizeOrig = a[2];
 
-      unsigned char* bytesOrig = malloc(dataSizeOrig);
-
-
-      if(read(fdOrig, bytesOrig, dataSizeOrig) < dataSizeOrig) {
-          printf("WAV file broken: data size incorrect");
-          return 1;
+      char* bytes = malloc(sizeof(char));
+      while(read(fd, bytes, sizeof(char))){
+        write(fdOut, bytes, sizeof(char));
       }
 
 
-      bitResample(bytesOrig, 'l', 32);
+      bitResample(fdOut, 'l', 32);
 
-      close(fdOrig);
+      close(fd);
       close(fdOut);
-      free(bytesOrig);
+      free(bytes);
     }
 }
 

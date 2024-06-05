@@ -42,6 +42,9 @@ byte diff function working also made makefile get rid of temp output files
 
 Working on a 'resample' function to help hide data via the combination/seperation of bytes in the bit sample rate
 
+### 6/4
+Continuing resample. still doesn't work but good progress
+
 
 ## Andrew
 
