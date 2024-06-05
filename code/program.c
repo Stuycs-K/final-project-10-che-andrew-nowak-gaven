@@ -227,6 +227,89 @@ int fileToBytes(int fd, unsigned char** bytes) {
     return size;
 }
 
+
+//fd needs read and write
+void bitResample(int fd, char mode, unsigned short newBitsPerSample){
+  // for(int n = 0; n < 200; n++){
+  //   printf("%d: %x, new: %hu\n", n, bytes[n], bitsPerSample);
+  // }
+  lseek(fd, 0, SEEK_SET);
+  int dataIndex = 0;
+  unsigned int* bytes = malloc(sizeof(unsigned int));
+
+
+  while(read(fd, bytes, sizeof(unsigned int))){
+  //  printf("%d: bytes: %u\n", dataIndex, bytes[0] );
+    if(*bytes == 1635017060){ //'data' but in int lol 6461 7461 -> 61 74 61 64 -> 1635017060
+      break;
+
+    }
+    dataIndex += sizeof(unsigned int);
+  //  printf("%d,[\n", dataIndex);
+  }
+
+
+
+
+  unsigned short bitSampleRate = 0;
+  lseek(fd, dataIndex - 2, SEEK_SET);
+  read(fd, &bitSampleRate, sizeof(unsigned short));
+
+  printf("OG BIT RATE: %hu\n", bitSampleRate);
+  printf("NEW BIT RATE: %hu\n", newBitsPerSample);
+
+  if(bitSampleRate == 0){
+    printf("\n\nWARNING BITSAMPLERATE == 0 in BIT REAMPLE NOT GOOD!\n\n\n");
+    return;
+  }
+
+  float ratio = (float) newBitsPerSample / (float) bitSampleRate;
+  lseek(fd, dataIndex - 2, SEEK_SET);
+  write(fd, &newBitsPerSample, sizeof(unsigned short));
+
+  int byteRate;
+  lseek(fd, dataIndex - 8, SEEK_SET);
+  read(fd, &byteRate, sizeof(int));
+  printf("OG BYTE RATE: %d\n", byteRate);
+
+  byteRate =(int) ((float) byteRate * ratio);
+
+  lseek(fd, dataIndex - 8, SEEK_SET);
+  write(fd, &byteRate, sizeof(int));
+  printf("NEW BYTE RATE: %d\n", byteRate);
+
+
+
+  return;
+}
+
+
+// int channelWrite(unsigned char* bytes, unsigned char* data, int length, int bitsPerSample, short channelAmount, short channel){
+//   data = malloc(length * sizeof(unsigned char) *)
+//
+//   int bytesPerSample = bitsPerSample / 8;
+//   printf("bytes per sample: %d\n", bytesPerSample);
+//
+//
+//
+//   for(int n = 0; n < length; n++){
+//
+//   }
+//
+// }
+
+void channelRead(unsigned char* bytes, int length, int bitsPerSample, short channel){
+  int bytesPerSample = bitsPerSample / 8;
+  printf("bytes per sample: %d\n", bytesPerSample);
+
+  for (int n = 0; n < length; n++){
+    if (n % bytesPerSample == 0){
+      printf("%02x", bytes[n]);
+    }
+  }
+}
+
+
 int main(int argc, char* argv[]) {
     if(argc < 2) {
         printf("Please provide mode as an argument\n");
@@ -428,4 +511,86 @@ int main(int argc, char* argv[]) {
       free(bytesNew);
       free(diffs);
     }
+
+
+    else if(strcmp(argv[1], "bitResample") == 0) {
+      if(argc < 4) {
+          printf("ARGS should be \"[original file] [output file]\"\n");
+          return 1;
+      }
+      //printf("%s\n", argv[2]);
+      int fd = open(argv[2], O_RDWR);
+      int fdOut = open(argv[3], O_RDWR | O_CREAT | O_TRUNC, 0600);
+
+      if(fd < 0) err();
+      if(fdOut < 0) err();
+
+
+      char* bytes = malloc(1000);
+      while(read(fd, bytes, 1000)){
+        write(fdOut, bytes, 1000);
+      }
+
+
+      bitResample(fdOut, 'l', 32);
+
+      close(fd);
+      close(fdOut);
+      free(bytes);
+    }
+
+    else if(strcmp(argv[1], "channelRead") == 0) {
+      if(argc < 3) {
+          printf("ARGS should be \"[original file]\"\n");
+          return 1;
+      }
+      //printf("%s\n", argv[2]);
+      int fd = open(argv[2], O_RDONLY);
+      if(fd < 0) err();
+      int* a = checkWavMore(fd);
+      if(a == NULL) {
+          printf("File provided does not appear to be in WAV format.\n");
+          return 1;
+      }
+      //doesn't work with the "JUNK" chunk in inst_test_mono and stereo
+      //printf("%d %d\n", a[0], a[1]);
+      int dataSize = a[2];
+      unsigned char* bytes = malloc(dataSize);
+      //printf("%d\n", lseek(fd, 0, SEEK_CUR));
+      if(read(fd, bytes, dataSize) < dataSize) {
+          printf("WAV broken\n");
+          return 1;
+      }
+
+      channelRead(bytes, dataSize, a[1], 2);
+
+
+      close(fd);
+      free(bytes);
+    }
 }
+
+
+
+/*
+
+To do:
+
+- Incporate LSB into freqEncode and insertion into encode
+
+- Create a 'resample' function because we can encode information that is usually 32 bit into 16 bit or vice versa
+  (similar to the Asian character ASCII 32/16 bit encoding)
+   ^  Should have a 'literal' mode and a 'adjust' mode: Literal just smashes the bytes together but recompile will re-adjust
+      the values to be consistant with the orignal .wav
+
+- Create a shift polarity function that can shift a polarity of a sound on one channel
+
+- figure out if we can do a spectogram image hider but do it in C somehow
+
+- create a channel ecoded thing by shoving data into channels that don't exist usually (like 12 channels)
+
+
+
+
+
+*/
