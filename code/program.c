@@ -283,9 +283,11 @@ void bitResample(int fd, char mode, unsigned short newBitsPerSample){
   return;
 }
 
-
+//
 // int channelWrite(unsigned char* bytes, unsigned char* data, int length, int bitsPerSample, short channelAmount, short channel){
-//   data = malloc(length * sizeof(unsigned char) *)
+//
+//   data = malloc(length * sizeof(unsigned char);
+//
 //
 //   int bytesPerSample = bitsPerSample / 8;
 //   printf("bytes per sample: %d\n", bytesPerSample);
@@ -391,7 +393,7 @@ int main(int argc, char* argv[]) {
 
     else if(strcmp(argv[1], "freqEncode") == 0) {
       if(argc < 4) {
-          printf("ARGS should be \"[input file] [output file]\"\n");
+          printf("ARGS should be \"[input file] [] [output file]\"\n");
           return 1;
       }
       //printf("%s\n", argv[2]);
@@ -568,6 +570,57 @@ int main(int argc, char* argv[]) {
       close(fd);
       free(bytes);
     }
+
+    // else if(strcmp(argv[1], "channelWrite") == 0) {
+    //   if(argc < 6) {
+    //       printf("ARGS should be \"[original file] [encode file] [outputfile] [channel]\"\n");
+    //       return 1;
+    //   }
+    //   //printf("%s\n", argv[2]);
+    //   int fd = open(argv[2], O_RDONLY);
+    //   if(fd < 0) err();
+    //   int* a = checkWavMore(fd);
+    //   if(a == NULL) {
+    //       printf("File provided does not appear to be in WAV format.\n");
+    //       return 1;
+    //   }
+    //
+    //   int fdData = open(argv[3], O_RDONLY);
+    //   int fdOut = open(argv[4], O_WRONLY);
+    //
+    //   //doesn't work with the "JUNK" chunk in inst_test_mono and stereo
+    //   //printf("%d %d\n", a[0], a[1]);
+    //   int dataSize = a[2];
+    //   unsigned char* bytes = malloc(dataSize);
+    //   //printf("%d\n", lseek(fd, 0, SEEK_CUR));
+    //   if(read(fd, bytes, dataSize) < dataSize) {
+    //       printf("WAV broken\n");
+    //       return 1;
+    //   }
+    //
+    //
+    //   unsigned char* fdOutBytes;
+    //   int fdChannelAmount = 0;
+    //   int channel = argv[5];
+    //
+    //   if(fdChannelAmount > channel){
+    //     channelWrite(bytes, fdOutBytes, dataSize, a[1], fdChannelAmount, channel);
+    //   }
+    //   else{
+    //     int newLength = dataSize * channel / fdChannelAmount;
+    //     channelWrite(bytes, fdOutBytes, newLength, a[1], fdChannelAmount, channel );
+    //   }
+    //
+    //   //find fd's channel amount
+    //   //change fdOut's channel amount to
+    //
+    //
+    //
+    //
+    //
+    //   close(fd);
+    //   free(bytes);
+    // }
 }
 
 
