@@ -102,41 +102,33 @@ void drawGraph(unsigned char* bytes, int dataSize) {
     }
 }
 
-void LSBinsert(unsigned char* bytes, int length, unsigned char* msg, int msgLength) {
-    if(16 * msgLength > length) {
+void LSBinsert(unsigned char* bytes, int length, unsigned char* msg, int msgLength, int bps) {
+    if(bps * msgLength > length) {
         printf("WAV file provided is too small to store data\n");
         exit(1);
     }
     //printf("b%d\n", *(int*)msg);
+    int incr = bps / 4;
     for(int i = 0; i < msgLength; ++i) {
         //printf("%d\n", msg[i]);
-        bytes[16*i] = (bytes[16*i] & (!3)) + (msg[i] >> 6 & 3);
-        bytes[16*i+4] = (bytes[16*i+4] & (!3)) + (msg[i] >> 4 & 3);
-        bytes[16*i+8] = (bytes[16*i+8] & (!3)) + (msg[i] >> 2 & 3);
-        bytes[16*i+12] = (bytes[16*i+12] & (!3)) + (msg[i] & 3);
-
-        unsigned char mmsg;
-        mmsg = bytes[16*i] & 3;
-        mmsg = mmsg << 2;
-        mmsg += bytes[16*i+4] & 3;
-        mmsg = mmsg << 2;
-        mmsg += bytes[16*i+8] & 3;
-        mmsg = mmsg << 2;
-        mmsg += bytes[16*i+12] & 3;
-        //printf("%d\n", mmsg);
+        bytes[bps*i] = (bytes[bps*i] & (!3)) + (msg[i] >> 6 & 3);
+        bytes[bps*i+incr] = (bytes[bps*i+incr] & (!3)) + (msg[i] >> 4 & 3);
+        bytes[bps*i+2*incr] = (bytes[bps*i+2*incr] & (!3)) + (msg[i] >> 2 & 3);
+        bytes[bps*i+3*incr] = (bytes[bps*i+3*incr] & (!3)) + (msg[i] & 3);
     }
 }
 
-int LSBextract(unsigned char* bytes, unsigned char** m) {
+int LSBextract(unsigned char* bytes, unsigned char** m, int bps) {
+    int incr = bps / 4;
     unsigned char csize[4];
     for(int i = 0; i < 4; ++i) {
-        csize[i] += bytes[16*i] & 3;
+        csize[i] += bytes[bps*i] & 3;
         csize[i] = csize[i] << 2;
-        csize[i] += bytes[16*i+4] & 3;
+        csize[i] += bytes[bps*i+incr] & 3;
         csize[i] = csize[i] << 2;
-        csize[i] += bytes[16*i+8] & 3;
+        csize[i] += bytes[bps*i+2*incr] & 3;
         csize[i] = csize[i] << 2;
-        csize[i] += bytes[16*i+12] & 3;
+        csize[i] += bytes[bps*i+3*incr] & 3;
     }
     int* psize = (int*)csize;
     int size = *psize;
@@ -145,14 +137,15 @@ int LSBextract(unsigned char* bytes, unsigned char** m) {
     fflush(stdout);
     *m = malloc(size);
     unsigned char* msg = *m;
+    int start = bps * 4;
     for(int i = 0; i < size; ++i) {
-        msg[i] = bytes[16*i+64] & 3;
+        msg[i] = bytes[bps*i+start] & 3;
         msg[i] = msg[i] << 2;
-        msg[i] += bytes[16*i+68] & 3;
+        msg[i] += bytes[bps*i+start+incr] & 3;
         msg[i] = msg[i] << 2;
-        msg[i] += bytes[16*i+72] & 3;
+        msg[i] += bytes[bps*i+start+2*incr] & 3;
         msg[i] = msg[i] << 2;
-        msg[i] += bytes[16*i+76] & 3;
+        msg[i] += bytes[bps*i+start+3*incr] & 3;
         //printf("%d\n", msg[i]);
     }
     return size;
@@ -345,7 +338,7 @@ int main(int argc, char* argv[]) {
         }
         unsigned char* msg;
         int msgSize = fileToBytes(fdMsg, &msg);
-        LSBinsert(bytes, dataSize, msg, msgSize);
+        LSBinsert(bytes, dataSize, msg, msgSize, a[1]);
         lseek(fd, 0, SEEK_SET);
         char buff[4];
         while( read(fd, buff, 2) ){
@@ -368,11 +361,12 @@ int main(int argc, char* argv[]) {
         }
         int fd = open(argv[2], O_RDONLY);
         if(fd < 0) err();
-        int dataSize = checkWav(fd);
-        if(dataSize == 0) {
+        int* a = checkWavMore(fd);
+        if(a == NULL) {
             printf("File provided does not appear to be in WAV format.\n");
             return 1;
         }
+        int dataSize = a[2];
         unsigned char* bytes = malloc(dataSize);
         //printf("%d\n", lseek(fd, 0, SEEK_CUR));
         if(read(fd, bytes, dataSize) < dataSize) {
@@ -381,7 +375,7 @@ int main(int argc, char* argv[]) {
         }
         //printf("%d ", bytes[0]); printf("%d ", bytes[1]); printf("%d\n", bytes[2]);
         unsigned char* msg;
-        int msgSize = LSBextract(bytes, &msg);
+        int msgSize = LSBextract(bytes, &msg, a[1]);
         int fdOut = open(argv[3], O_CREAT | O_TRUNC | O_WRONLY, 0600);
         write(fdOut, msg, msgSize);
         close(fdOut);

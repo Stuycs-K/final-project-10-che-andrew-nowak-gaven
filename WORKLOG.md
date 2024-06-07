@@ -74,3 +74,7 @@ Wrote a function for Gaven to get info about the wave. Fixed a bug where it assu
 ### 5/30
 
 Fixed two bugs with LSBextract, encoding and decoding now technically work but ruin the audio. I think it's because it turns 0s into non-0s so I tried making it only change non-0s but couldn't figure it out.
+
+### 5/31-6/5
+
+Spent this whole time making the audio not get ruined. The bug was caused by modifying every byte instead of every 4 bytes, so the 4 byte int values in the audio changed a lot. When I tried to do every 4 bytes, it caused a lot of errors. I had to write the 4-bit int for size in manually (should work if computer is little or big endian) and debug a bunch of miswritten array stuff. Debugging took a lot of time but I finally finished in 6/5.
