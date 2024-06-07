@@ -305,6 +305,12 @@ void channelRead(unsigned char* bytes, int length, int bitsPerSample, short chan
   }
 }
 
+void setChannels(unsigned char* bytes, short channels) {
+  int i = 0;
+  while(strncmp(bytes[i], "fmt ", 4)) ++i;
+  i += 10;
+  memcpy(bytes + i, &channels, sizeof(short));
+}
 
 int main(int argc, char* argv[]) {
     if(argc < 2) {
