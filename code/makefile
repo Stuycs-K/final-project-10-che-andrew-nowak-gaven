@@ -12,6 +12,12 @@ freqDecode: program
 	@./program freqDecode $(ARGS)
 diff: program
 	@./program diff $(ARGS)
+bitResample: program
+	@./program bitResample $(ARGS)
+channelRead: program
+	@./program channelRead $(ARGS)
+channelWrite: program
+	@./program channelWrite $(ARGS)
 clean:
 	@rm -f *.o
 	@rm -f program
