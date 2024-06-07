@@ -45,26 +45,29 @@ int checkWav(int fd) {
     return size;
 }
 
-// returns {sampleRate, bitsPerSample, dataSize}
+// returns {sampleRate, bitsPerSample, dataSize, numChannels}
 int* checkWavMore(int fd) {
-    int* result = malloc(3 * sizeof(int));
-    char* s = malloc(5);
+    int* result = malloc(4 * sizeof(int));
+    char* s = malloc(4);
     if(read(fd, s, 4) < 4) return NULL;
-    if(strcmp(s, "RIFF") != 0) return NULL;
+    if(strncmp(s, "RIFF", 4) != 0) return NULL;
     if(read(fd, s, 4) < 4) return NULL;
     //file size - 8 is stored in s now
     if(read(fd, s,
     4) < 4) return NULL;
     if(read(fd, s, 4) < 4) return 0; // next subchunk header is now in data
     int lastHeader = 12;
-    while(strcmp(s, "fmt ") != 0) { // this loop reads the subchunk size then skips ahead to the next subchunk
+    while(strncmp(s, "fmt ", 4) != 0) { // this loop reads the subchunk size then skips ahead to the next subchunk
         int size;
         if(read(fd, &size, 4) < 4) return 0; // current subchunk size is now in size
         lastHeader += size + 8; // +8 because subchunk header size does not include first 8 bytes (subchunk id and size)
         lseek(fd, lastHeader, SEEK_SET);
         if(read(fd, s, 4) < 4) return 0; // current subchunk id (name) is now in s
     }
-    lseek(fd, 8, SEEK_CUR);
+    lseek(fd, 6, SEEK_CUR);
+    short numChannels = 0;
+    if(read(fd, &numChannels, 2) < 2) return NULL;
+    result[3] = (int)numChannels;
     if(read(fd, result, 4) < 4) return NULL;
     lseek(fd, 6, SEEK_CUR);
     short bps = 0;
@@ -72,7 +75,7 @@ int* checkWavMore(int fd) {
     result[1] = (int)bps;
     lastHeader = lseek(fd, 0, SEEK_CUR);
     if(read(fd, s, 4) < 4) return NULL;
-    while(strcmp(s, "data") != 0) { // this loop reads the subchunk size then skips ahead to the next subchunk
+    while(strncmp(s, "data", 4) != 0) { // this loop reads the subchunk size then skips ahead to the next subchunk
         int size;
         if(read(fd, &size, 4) < 4) return 0; // current subchunk size is now in size
         lastHeader += size + 8; // +8 because subchunk header size does not include first 8 bytes (subchunk id and size)
