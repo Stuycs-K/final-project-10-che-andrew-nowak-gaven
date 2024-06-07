@@ -284,40 +284,52 @@ void bitResample(int fd, char mode, unsigned short newBitsPerSample){
 }
 
 
-int channelWrite(unsigned char* inBytes, unsigned char* data, unsigned char* outBytes, int lengthOfInBytes, int bitsPerSample, short channelAmount, short channel){
+int channelWrite(unsigned char* inBytes, unsigned char* data, unsigned char* outBytes, int start, int lengthOfInBytes, int dataLength, int outByteLength, int bitsPerSample, short channelAmount, short channel){
   int bytesPerSample = bitsPerSample / 8;
   printf("bytes per sample: %d\n", bytesPerSample);
 
   int offset = 0;
   int dataIndex = 0;
-  int n = 0;
+  int n = start;
 
   if(channel <= channelAmount){
-    for(n = 0; n < lengthOfInBytes; n++){
-      if(n % (bytesPerSample * channelAmount) == 0){
-        outBytes[n] = data[dataIndex];
-        dataIndex++;
+    for(n = start; n < lengthOfInBytes; n++){
+      if(n >= dataLength){
+        outBytes[n] = inBytes[n];
       }
-      outBytes[n] = inBytes[n];
+
+      if(n % (bytesPerSample * channelAmount) == 0){
+        outBytes[n] = data[n];
+      }
+      else{
+        outBytes[n] = inBytes[n];
+      }
+
     }
     return n;
   }
 
-
-  for(n = 0; n < lengthOfInBytes; n++){
-    if(n % (bytesPerSample * channelAmount) == 0){
-      outBytes[n + offset] = data[dataIndex];
-      dataIndex++;
-      offset++;
+  for(n = start; n < lengthOfInBytes; n++){
+    if(n + offset >= outByteLength){
+      return (n + offset);
     }
-    outBytes[n + offset] = inBytes[n];
+    if(n % (bytesPerSample * channelAmount) == 0){
+
+      if(dataIndex < dataLength){
+        outBytes[n + offset] = inBytes[n];
+        offset++;
+      }
+      else{
+        outBytes[n + offset] = data[dataIndex];
+        dataIndex++;
+        offset++;
+      }
+
+    }
+    else{
+      outBytes[n + offset] = inBytes[n];
+    }
   }
-
-
-//  0    1    2   3    4   5    6
-// 10   11   12   3    43  2
-// 10   11   x   12    3   43   2
-  printf("Total out size: %d\n", (n + offset));
   return (n + offset);
 }
 
@@ -620,16 +632,16 @@ int main(int argc, char* argv[]) {
           printf("File provided does not appear to be in WAV format.\n");
           return 1;
       }
-      int byteSize = a[2];
+      int byteDataSize = a[2];
 
       int dataSize = lseek(fdData, 0, SEEK_END);
       lseek(fdData, 0, SEEK_SET);
 
-      unsigned char* bytes = malloc(byteSize);
+      unsigned char* bytes = malloc(byteDataSize);
       unsigned char* data = malloc(dataSize);
       unsigned char* fdOutBytes;
       //printf("%d\n", lseek(fd, 0, SEEK_CUR));
-      if(read(fd, bytes, byteSize) < byteSize) {
+      if(read(fd, bytes, byteDataSize) < byteDataSize) {
           printf("WAV broken\n");
           return 1;
       }
@@ -640,23 +652,27 @@ int main(int argc, char* argv[]) {
           return 1;
       }
 
+      int index = lseek(fd, 0, SEEK_CUR);
 
 
       int fdChannelAmount = 2;
       int channel = (int) argv[5][0] - '0';
 
+      int outLength = 0;
+
 
       if(fdChannelAmount > channel){
-        fdOutBytes = malloc(byteSize);
+        fdOutBytes = malloc(byteDataSize);
       }
       else{
-        int newLength = byteSize * channel / fdChannelAmount;
-        printf("%d, %d\n", byteSize, newLength);
-        fdOutBytes = malloc(newLength);
+        outLength = byteDataSize * channel / fdChannelAmount;
+        printf("%d, %d\n", byteDataSize, outLength);
+        fdOutBytes = malloc(outLength * 2);
       }
-      lseek(fd, 0, SEEK_SET);
-      printf("byteSize, %d fdChannelAmount: %d, channel: %d\n", byteSize, fdChannelAmount, channel);
-      int outByteSize = channelWrite(bytes, data, fdOutBytes, byteSize, a[1], fdChannelAmount, channel );
+    //  lseek(fd, 0, SEEK_SET);
+      printf("byteSize, %d fdChannelAmount: %d, channel: %d\n", byteDataSize, fdChannelAmount, channel);
+      int outByteSize = channelWrite(bytes, data, fdOutBytes, index, byteDataSize, dataSize, outLength, a[1], fdChannelAmount, channel );
+      printf("outbytesize: %d\n", outByteSize);
       write(fdOut, fdOutBytes, outByteSize);
       //find fd's channel amount
       //change fdOut's channel amount to
@@ -686,10 +702,6 @@ To do:
   (similar to the Asian character ASCII 32/16 bit encoding)
    ^  Should have a 'literal' mode and a 'adjust' mode: Literal just smashes the bytes together but recompile will re-adjust
       the values to be consistant with the orignal .wav
-
-- Create a shift polarity function that can shift a polarity of a sound on one channel
-
-- figure out if we can do a spectogram image hider but do it in C somehow
 
 - create a channel ecoded thing by shoving data into channels that don't exist usually (like 12 channels)
 
