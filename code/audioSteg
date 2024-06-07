@@ -1,0 +1,12 @@
+#!/usr/bin/bash
+if [ "$1" == "" ]; then
+help="Please use the following commands:
+LSB encode:        audioSteg -le raw.wav input.file encoded.wav
+LSB decode:        audioSteg -ld encoded.wav output.file
+freq encode:       audioSteg -fe raw.wav encoded.wav
+freq decode:       audioSteg -fd encoded.wav
+file diff:         audioSteg -df one.wav two.wav output.file
+bit resample:      audioSteg -br 16bit.wav 32bit.wav
+write 3rd channel: audioSteg -ce raw.wav
+read 3rd channel:  audioSteg -cd encoded.wav"
+fi
