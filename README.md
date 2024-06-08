@@ -13,7 +13,7 @@ This project is a tool that can be used to encrypt and decrypt information in WA
 All programs are run using the audioSteg file in the code subdirectory.  
 Simply running the script will give you the flags and arguments for each option:  
 ```
-ache40@ANDREWSDESKTOP:~/boogaloo/final-project-10-che-andrew-nowak-gaven$ code/audioSteg
+final-project-10-che-andrew-nowak-gaven$ code/audioSteg
 Please use the following commands:
 LSB encode:        audioSteg -le raw.wav input.file encoded.wav
 LSB decode:        audioSteg -ld encoded.wav output.file
