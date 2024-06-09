@@ -8,7 +8,7 @@ LSB decode:        audioSteg -ld encoded.wav output.file
 freq encode:       audioSteg -fe raw.wav input.file encoded.wav frequency
 freq decode:       audioSteg -fd encoded.wav output.file frequency
 file diff:         audioSteg -df one.wav two.wav output.file
-bit resample:      audioSteg -br 16bit.wav 32bit.wav
+bit resample:      audioSteg -br 16bit.wav 32bit.wav resampleRate
 write 3rd channel: audioSteg -ce raw.wav
 read 3rd channel:  audioSteg -cd encoded.wav'
 echo "$help"
