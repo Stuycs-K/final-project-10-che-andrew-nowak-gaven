@@ -54,7 +54,10 @@ working on channelRead channelWrite
 ### 6/8
 giving up on channelRead and Write but write kinda works?
 working on presentation 
+recorded video with Andrew
 
+### 6/9
+finished video and sent to google drive
 
 ## Andrew
 
