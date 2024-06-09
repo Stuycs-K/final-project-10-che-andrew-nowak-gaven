@@ -53,8 +53,7 @@ int* checkWavMore(int fd) {
     if(strncmp(s, "RIFF", 4) != 0) return NULL;
     if(read(fd, s, 4) < 4) return NULL;
     //file size - 8 is stored in s now
-    if(read(fd, s,
-    4) < 4) return NULL;
+    if(read(fd, s, 4) < 4) return NULL;
     if(read(fd, s, 4) < 4) return 0; // next subchunk header is now in data
     int lastHeader = 12;
     while(strncmp(s, "fmt ", 4) != 0) { // this loop reads the subchunk size then skips ahead to the next subchunk
@@ -468,8 +467,8 @@ int main(int argc, char* argv[]) {
     }
 
     else if(strcmp(argv[1], "freqEncode") == 0) {
-      if(argc < 5) {
-          printf("ARGS should be \"[input wav] [input file] [output wav]\"\n");
+      if(argc < 6) {
+          printf("ARGS should be \"[input wav] [input file] [output wav] [frequency]\"\n");
           return 1;
       }
       //printf("%s\n", argv[2]);
@@ -496,7 +495,12 @@ int main(int argc, char* argv[]) {
       }
       unsigned char* msg;
       int msgSize = fileToBytes(fdMsg, &msg);
-      freqInsert(bytes, dataSize, msg, msgSize, 2000, a[0]);
+      int freq = atoi(argv[5]);
+      if(freq <= 0) {
+        printf("Frequency must be a positive number\n");
+        return 1;
+      }
+      freqInsert(bytes, dataSize, msg, msgSize, freq, a[0]);
       lseek(fd, 0, SEEK_SET);
       char buff[4];
       while( read(fd, buff, 2) ){
@@ -513,8 +517,8 @@ int main(int argc, char* argv[]) {
       free(bytes);
     }
     else if(strcmp(argv[1], "freqDecode") == 0) {
-        if(argc < 4) {
-            printf("ARGS should be \"[input wav] [output file]\"\n");
+        if(argc < 5) {
+            printf("ARGS should be \"[input wav] [output file] [frequency]\"\n");
             return 1;
         }
         int fd = open(argv[2], O_RDONLY);
@@ -536,8 +540,13 @@ int main(int argc, char* argv[]) {
             return 1;
         }
         //printf("%d ", bytes[0]); printf("%d ", bytes[1]); printf("%d\n", bytes[2]);
+        int freq = atoi(argv[4]);
+        if(freq <= 0) {
+          printf("Frequency must be a positive number\n");
+          return 1;
+        }
         unsigned char* msg;
-        int msgSize = freqExtract(bytes, &msg, 2000, a[0]);
+        int msgSize = freqExtract(bytes, &msg, freq, a[0]);
         write(fdOut, msg, msgSize);
         close(fd);
         close(fdOut);

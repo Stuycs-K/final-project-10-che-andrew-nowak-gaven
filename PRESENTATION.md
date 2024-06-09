@@ -23,3 +23,15 @@ Usage: ```code/audioSteg -le [WAV FILE] [DATA FILE] [OUTPUT WAV]```
 Example: ```code/audioSteg -le testing_sounds/tune.wav code/msg.txt out.wav```  
 ### Frequency mode
 The data is encoded one byte per the sample rate/ input frequency. The larger the frequency, the more data can be stored, but at the consequence of having more audio distortions. 
+Usage: ```code/audioSteg ```  
+Example: ```code/audioSteg ```  
+### WAV diff
+This mode takes two WAV files and finds differences in their data. It outputs the different bits into a file.  
+Usage: ```code/audioSteg ```  
+Example: ```code/audioSteg ```  
+### Bit resample
+This mode changes a WAV file's bits per sample.  
+Usage: ```code/audioSteg ```  
+Example: ```code/audioSteg ```  
+### Channel encoding
+This mode doesn't work, but the idea is to encode a message in the 3rd+ channel of a WAV file. Since most headphones and laptop speakers only play two channels, channels beyond the third one won't affect the audio.
