@@ -17,3 +17,9 @@ A sample's length (in bits) can be any multiple of 8, but the only ones commonly
 The concurrent samples for different channels are next to each other in order. For example, a stereo (2-channel) WAV file's data would be left sample 1, right sample 1, left sample 2, right sample 2, etc.  
 ## Our Project
 ### LSB mode
+This mode is similar to our image encoding lab, where we take the 2 least significant bits of each sample and encode data from a file in them. Unlike our image lab, you don't have to tell the program the size of the data; the data size is stored in the first 4 encrypted bits.  
+This mode adapts to the bits per sample of the WAV file. For example, if a file is 24 bits per sample, it will encode every 3 bytes. It assumes the bytes are little endian, which follows the WAV file format specification.  
+Usage: ```code/audioSteg -le [WAV FILE] [DATA FILE] [OUTPUT WAV]```  
+Example: ```code/audioSteg -le testing_sounds/tune.wav code/msg.txt out.wav```  
+### Frequency mode
+This mode uses the sample rate and bits per sample to determine how fast the samples play. 
