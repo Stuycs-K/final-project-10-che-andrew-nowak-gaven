@@ -16,22 +16,10 @@ Audio data is encoded as a series of numbers (samples) that represent the amplit
 A sample's length (in bits) can be any multiple of 8, but the only ones commonly used are 8, 16, 24, and 32. The higher the bits per sample, the higher the range of possible amplitudes.  
 The concurrent samples for different channels are next to each other in order. For example, a stereo (2-channel) WAV file's data would be left sample 1, right sample 1, left sample 2, right sample 2, etc.  
 ## Our Project
-### LSB encoding
+### LSB mode
 This mode is similar to our image encoding lab, where we take the 2 least significant bits of each sample and encode data from a file in them. Unlike our image lab, you don't have to tell the program the size of the data; the data size is stored in the first 4 encrypted bits.  
 This mode adapts to the bits per sample of the WAV file. For example, if a file is 24 bits per sample, it will encode every 3 bytes. It assumes the bytes are little endian, which follows the WAV file format specification.  
 Usage: ```code/audioSteg -le [WAV FILE] [DATA FILE] [OUTPUT WAV]```  
 Example: ```code/audioSteg -le testing_sounds/tune.wav code/msg.txt out.wav```  
-### Frequency encoding
-This mode uses the sample rate and bits per sample to determine how fast the samples play.  
-Usage: ```code/audioSteg ```  
-Example: ```code/audioSteg ```  
-### WAV diff
-This mode takes two WAV files and finds differences in their data. It outputs the different bits into a file.  
-Usage: ```code/audioSteg ```  
-Example: ```code/audioSteg ```  
-### Bit resample
-This mode changes a WAV file's bits per sample.  
-Usage: ```code/audioSteg ```  
-Example: ```code/audioSteg ```  
-### Channel encoding
-This mode doesn't work, but the idea is to encode a message in the 3rd+ channel of a WAV file. Since most headphones and laptop speakers only play two channels, channels beyond the third one won't affect the audio.
+### Frequency mode
+The data is encoded one byte per the sample rate/ input frequency. The larger the frequency, the more data can be stored, but at the consequence of having more audio distortions. 
