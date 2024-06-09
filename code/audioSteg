@@ -1,4 +1,6 @@
 #!/usr/bin/bash
+scriptDir="$(dirname "$0")"
+(cd $scriptDir && make compile)
 if [ "$1" == "" ]; then
 help=$'Please use the following commands:
 LSB encode:        audioSteg -le raw.wav input.file encoded.wav
@@ -12,26 +14,26 @@ read 3rd channel:  audioSteg -cd encoded.wav'
 echo "$help"
 fi
 if [ "$1" == "-le" ]; then
-make encode ARGS="$2 $3 $4"
+$scriptDir/program encode $2 $3 $4
 fi
 if [ "$1" == "-ld" ]; then
-make decode ARGS="$2 $3"
+$scriptDir/program decode $2 $3
 fi
 if [ "$1" == "-fe" ]; then
-make freqEncode ARGS="$2 $3 $4"
+$scriptDir/program freqEncode $2 $3 $4
 fi
 if [ "$1" == "-fd" ]; then
-make freqDecode ARGS="$2 $3"
+$scriptDir/program freqDecode $2 $3
 fi
 if [ "$1" == "-df" ]; then
-make diff ARGS="$2 $3 $4"
+$scriptDir/program diff $2 $3 $4
 fi
 if [ "$1" == "-br" ]; then
-make bitResample ARGS="$2 $3"
+$scriptDir/program bitResample $2 $3
 fi
 if [ "$1" == "-ce" ]; then
-make channelWrite ARGS="$2"
+$scriptDir/program channelWrite $2
 fi
 if [ "$1" == "-cd" ]; then
-make channelRead ARGS="$2"
+$scriptDir/program channelRead $2
 fi
