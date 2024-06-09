@@ -19,19 +19,27 @@ The concurrent samples for different channels are next to each other in order. F
 ### LSB mode
 This mode is similar to our image encoding lab, where we take the 2 least significant bits of each sample and encode data from a file in them. Unlike our image lab, you don't have to tell the program the size of the data; the data size is stored in the first 4 encrypted bits.  
 This mode adapts to the bits per sample of the WAV file. For example, if a file is 24 bits per sample, it will encode every 3 bytes. It assumes the bytes are little endian, which follows the WAV file format specification.  
+Encoding:  
 Usage: ```code/audioSteg -le [WAV FILE] [DATA FILE] [OUTPUT WAV]```  
-Example: ```code/audioSteg -le testing_sounds/tune.wav code/msg.txt out.wav```  
+Example: ```code/audioSteg -le testing_sounds/tune.wav msg.txt out.wav```  
+Decoding:  
+Usage: ```code/audioSteg -ld [ENCODED WAV FILE] [OUTPUT FILE]```  
+Example: ```code/audioSteg -ld out.wav out.txt```  
 ### Frequency mode
-The data is encoded one byte per the sample rate/ input frequency. The larger the frequency, the more data can be stored, but at the consequence of having more audio distortions. 
-Usage: ```code/audioSteg ```  
-Example: ```code/audioSteg ```  
+The data is encoded one byte per the sample rate/ input frequency. The larger the frequency, the more data can be stored, but at the consequence of having more audio distortions.  
+Encoding:  
+Usage: ```code/audioSteg -fe [WAV FILE] [DATA FILE] [OUTPUT WAV] [FREQUENCY IN HZ]```  
+Example: ```code/audioSteg -fe testing_sounds/tune.wav msg.txt out.wav 2000```  
+Decoding:  
+Usage: ```code/audioSteg -fd [ENCODED WAV FILE] [OUTPUT FILE] [FREQUENCY IN HZ]```  
+Example: ```code/audioSteg -fd out.wav out.txt 2000```  
 ### WAV diff
-This mode takes two WAV files and finds differences in their data. It outputs the different bits into a file.  
-Usage: ```code/audioSteg ```  
-Example: ```code/audioSteg ```  
+This mode takes two WAV files and finds differences in their data. It outputs the different bytes into a file. The bytes may or may not be important, but the more important thing is the presence of a difference and how many bytes are different (which it tells you).  
+Usage: ```code/audioSteg -df [WAV FILE 0] [WAV FILE 1] [OUTPUT FILE]```  
+Example: ```code/audioSteg -df testing_sounds/tune.wav out.wav out.diffs```  
 ### Bit resample
-This mode changes a WAV file's bits per sample.  
-Usage: ```code/audioSteg ```  
-Example: ```code/audioSteg ```  
+This mode changes a WAV file's bits per sample. It can make an audio file unintelligible which can be used to hide a message in the audio itself.  
+Usage: ```code/audioSteg -br [INPUT WAV] [OUTPUT WAV] [NEW SAMPLE RATE]```  
+Example: ```code/audioSteg -br testing_sounds/tune.wav out.wav 32```  
 ### Channel encoding
 This mode doesn't work, but the idea is to encode a message in the 3rd+ channel of a WAV file. Since most headphones and laptop speakers only play two channels, channels beyond the third one won't affect the audio.
