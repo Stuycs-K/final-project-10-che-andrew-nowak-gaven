@@ -23,4 +23,5 @@ bit resample:      audioSteg -br 16bit.wav 32bit.wav
 ```  
 The example file names show that file's format and purpose. The .file extension means that file can be any file as long as its small enough to be stored in the WAV.  
 The program will alert you if the file is not found, a WAV file seems to be misformatted, or you provided too few arguments.  
-If you get a "WAV broken: size mismatch" error, that means the data size in the header of the WAV file you provided does not equal the real data size. If the WAV file was produced by our program, that means it was a bug of our program. If the WAV is from the internet/somewhere else, that means it was somehow incorrectly created.
+If you get a "WAV broken: size mismatch" error, that means the data size in the header of the WAV file you provided does not equal the real data size. If the WAV file was produced by our program, that means it was a bug of our program. If the WAV is from the internet/somewhere else, that means it was somehow incorrectly created.  
+Some operations may destroy a WAV file. For example, frequency encoding at a very low frequency could render a WAV file unplayable. The program won't warn you if this happens, so if you make a WAV unplayable, try using a weaker encryption.
