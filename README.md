@@ -8,7 +8,6 @@ This project is a tool that can be used to encrypt and decrypt information in WA
 - Frequency-based: Uses the WAV metadata to encode the data into an audio sample every second
 - Data difference: Finds differences in the audio/data of two WAV files.
 - Bit resample: Changes a WAV file from 16 bits per sample to 32 bits per sample.
-- Third channel: Reads/writes data to the third channel of the audio data, which is not played on standard headphones and speakers.
 ## Instructions
 All programs are run using the audioSteg file in the code subdirectory.  
 Simply running the script will give you the flags and arguments for each option:  
@@ -21,8 +20,6 @@ freq encode:       audioSteg -fe raw.wav encoded.wav
 freq decode:       audioSteg -fd encoded.wav
 file diff:         audioSteg -df one.wav two.wav output.file
 bit resample:      audioSteg -br 16bit.wav 32bit.wav
-write 3rd channel: audioSteg -ce raw.wav
-read 3rd channel:  audioSteg -cd encoded.wav
 ```  
 The example file names show that file's format and purpose. The .file extension means that file can be any file as long as its small enough to be stored in the WAV.  
 The program will alert you if the file is not found, a WAV file seems to be misformatted, or you provided too few arguments.  
