@@ -29,11 +29,11 @@ if [ "$1" == "-df" ]; then
 $scriptDir/program diff $2 $3 $4
 fi
 if [ "$1" == "-br" ]; then
-$scriptDir/program bitResample $2 $3
+$scriptDir/program bitResample $2 $3 $4
 fi
 if [ "$1" == "-ce" ]; then
-$scriptDir/program channelWrite $2
+$scriptDir/program channelWrite $2 $3 $4 $5
 fi
 if [ "$1" == "-cd" ]; then
-$scriptDir/program channelRead $2
+$scriptDir/program channelRead $2 $3
 fi
