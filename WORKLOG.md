@@ -48,6 +48,13 @@ Continuing resample. still doesn't work but good progress
 ### 6/5
 resample almost done and working on channelRead and write
 
+### 6/6
+working on channelRead channelWrite
+
+### 6/8
+giving up on channelRead and Write but write kinda works?
+working on presentation 
+
 
 ## Andrew
 
