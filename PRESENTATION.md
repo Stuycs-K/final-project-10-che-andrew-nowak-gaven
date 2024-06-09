@@ -26,7 +26,7 @@ Decoding:
 Usage: ```code/audioSteg -ld [ENCODED WAV FILE] [OUTPUT FILE]```  
 Example: ```code/audioSteg -ld out.wav out.txt```  
 ### Frequency mode
-The data is encoded one byte per the sample rate/ input frequency. The larger the frequency, the more data can be stored, but at the consequence of having more audio distortions.  
+The data is encoded one byte per the sample rate/ input frequency, so it spreads it out over the whole audio at frequencies that you choose. The larger the frequency, the more data can be stored, but at the consequence of having more audio distortions.  
 Encoding:  
 Usage: ```code/audioSteg -fe [WAV FILE] [DATA FILE] [OUTPUT WAV] [FREQUENCY IN HZ]```  
 Example: ```code/audioSteg -fe testing_sounds/tune.wav msg.txt out.wav 2000```  
@@ -34,11 +34,11 @@ Decoding:
 Usage: ```code/audioSteg -fd [ENCODED WAV FILE] [OUTPUT FILE] [FREQUENCY IN HZ]```  
 Example: ```code/audioSteg -fd out.wav out.txt 2000```  
 ### WAV diff
-This mode takes two WAV files and finds differences in their data. It outputs the different bytes into a file. The bytes may or may not be important, but the more important thing is the presence of a difference and how many bytes are different (which it tells you).  
+This mode takes two WAV files and finds differences in their data. It outputs the different bytes into a file. The bytes may or may not be important depending on how it was encrypted, but the more important thing is the presence of a difference and how many bytes are different (which it tells you).  
 Usage: ```code/audioSteg -df [WAV FILE 0] [WAV FILE 1] [OUTPUT FILE]```  
 Example: ```code/audioSteg -df testing_sounds/tune.wav out.wav out.diffs```  
 ### Bit resample
-This mode changes a WAV file's bits per sample. It can make an audio file unintelligible which can be used to hide a message in the audio itself.  
+This mode changes a WAV file's bits per sample in the metadata while leaving the actual data the same. This means audio players will interpret the bytes completely differently, jumbling the audio significantly. It can make an audio file unintelligible which can be used to hide a message in the audio itself.  
 Usage: ```code/audioSteg -br [INPUT WAV] [OUTPUT WAV] [NEW SAMPLE RATE]```  
 Example: ```code/audioSteg -br testing_sounds/tune.wav out.wav 32```  
 ### Channel encoding
