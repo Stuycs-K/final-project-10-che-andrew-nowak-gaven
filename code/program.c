@@ -366,13 +366,13 @@ void setChannels(unsigned char* bytes, short initialChannels, short channels) {
    }
    i += 10;
   memcpy(bytes + i, &channels, sizeof(short));
-  i += 6;
-  int byteRate = 0;
-  memcpy(&byteRate, bytes + i, sizeof(int));
-  // printf("og byte rate %d\n", byteRate);
-  byteRate = (int) (byteRate * channels) / initialChannels;
-  // printf("new byte rate %d\n", byteRate);
-  memcpy(bytes + i, &byteRate, sizeof(int));
+  // i += 6;
+  // int byteRate = 0;
+  // memcpy(&byteRate, bytes + i, sizeof(int));
+  // // printf("og byte rate %d\n", byteRate);
+  // byteRate = (int) (byteRate * channels) / initialChannels;
+  // // printf("new byte rate %d\n", byteRate);
+  // memcpy(bytes + i, &byteRate, sizeof(int));
 }
 
 int main(int argc, char* argv[]) {
@@ -746,6 +746,8 @@ int main(int argc, char* argv[]) {
       lseek(fdOut, dataIndex, SEEK_SET);
 
       write(fdOut, fdOutBytes, outByteSize);
+
+
 
 
 
