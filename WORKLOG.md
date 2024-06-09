@@ -48,6 +48,13 @@ Continuing resample. still doesn't work but good progress
 ### 6/5
 resample almost done and working on channelRead and write
 
+### 6/6
+working on channelRead channelWrite
+
+### 6/8
+giving up on channelRead and Write but write kinda works?
+working on presentation 
+
 
 ## Andrew
 
@@ -97,4 +104,8 @@ Added some stuff to help Gaven: a changeChannels function and checkWavMore now a
 
 ### 6/8-6/9
 
+<<<<<<< HEAD
+Spent this whole time making the audio not get ruined. The bug was caused by modifying every byte instead of every 4 bytes, so the 4 byte int values in the audio changed a lot. When I tried to do every 4 bytes, it caused a lot of errors. I had to write the 4-bit int for size in manually (should work if computer is little or big endian) and debug a bunch of miswritten array stuff. Debugging took a lot of time but I finally finished in 6/5.
+=======
 I finished the bash script and made it work outside of the code directory. I also made freqInsert and Extract take files to encode instead of just "hello world". I also worked on the readme and presentation files.
+>>>>>>> adc32faf21aa659869ef9b19f8fe1649caedfaed
