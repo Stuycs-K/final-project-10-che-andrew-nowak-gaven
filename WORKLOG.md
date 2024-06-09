@@ -54,7 +54,10 @@ working on channelRead channelWrite
 ### 6/8
 giving up on channelRead and Write but write kinda works?
 working on presentation 
+recorded video with Andrew
 
+### 6/9
+finished video and sent to google drive
 
 ## Andrew
 
@@ -104,4 +107,4 @@ Added some stuff to help Gaven: a changeChannels function and checkWavMore now a
 
 ### 6/8-6/9
 
-I finished the bash script and made it work outside of the code directory. I also made freqInsert and Extract take files to encode instead of just "hello world". I also worked on the readme and presentation files.
+I finished the bash script and made it work outside of the code directory. I also made freqInsert and Extract take files to encode instead of just "hello world". I also worked on the readme and presentation files and helped record the video.
