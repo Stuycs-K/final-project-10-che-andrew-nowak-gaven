@@ -580,8 +580,8 @@ int main(int argc, char* argv[]) {
 
 
     else if(strcmp(argv[1], "bitResample") == 0) {
-      if(argc < 4) {
-          printf("ARGS should be \"[original file] [output file]\"\n");
+      if(argc < 5) {
+          printf("ARGS should be \"[original file] [output file] [resample rate]\"\n");
           return 1;
       }
       //printf("%s\n", argv[2]);
@@ -597,8 +597,9 @@ int main(int argc, char* argv[]) {
         write(fdOut, bytes, 1000);
       }
 
+      int resampleRate = (int) argv[4][0] - '0';
 
-      bitResample(fdOut, 'l', 32);
+      bitResample(fdOut, 'l', pow(2, resampleRate));
 
       close(fd);
       close(fdOut);
