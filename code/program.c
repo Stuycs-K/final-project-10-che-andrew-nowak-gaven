@@ -154,7 +154,7 @@ int LSBextract(unsigned char* bytes, unsigned char** m, int bps) {
     return size;
 }
 
-void freqInsert(unsigned char* bytes, char*msg, int freq, int sampleRate){
+void freqInsert(unsigned char* bytes, int bytesLength, unsigned char* msg, int msgLength, int freq, int sampleRate){
 
 //2000hz samples per sec * 2 bytes per sample per channel * 2 channel -> 8000 bytes per sec
 //every 8000th byte
@@ -164,24 +164,35 @@ void freqInsert(unsigned char* bytes, char*msg, int freq, int sampleRate){
   printf("bits sample channel: %d\n", sampleRate);
   printf("bytes rate: %d\n", freqByteRate);
 
-  for (int n = 0; n <= strlen(msg); n++){
+  for (int n = 0; n < msgLength; n++){
+    if((n * freqByteRate / 2) + (freqByteRate / 4) > bytesLength) {
+      printf("WAV file is too small to store data\n");
+      exit(1);
+    }
     bytes[(n * freqByteRate / 2) + (freqByteRate / 4)] = msg[n];
   }
 
 
 }
 
-void freqExtract(unsigned char* bytes, int length, int freq, int sampleRate){
+int freqExtract(unsigned char* bytes, unsigned char** msg, int freq, int sampleRate){
 
   int freqByteRate = sampleRate / freq;
   printf("bits sample channel: %d\n", sampleRate);
   printf("bytes rate: %d\n", freqByteRate);
-  for (int n = 0; n <= length; n++){
-    printf("%c", bytes[(n * freqByteRate / 2) + (freqByteRate / 4)]);
+  unsigned char csize[4];
+  for (int n = 0; n < 4; n++){
+    csize[n] =  bytes[(n * freqByteRate / 2) + (freqByteRate / 4)];
   }
-  printf("\n");
-
-
+  int size = *(int*)csize;
+  size -= sizeof(int);
+  //printf("%d\n", size);
+  *msg = malloc(size);
+  unsigned char* m = *msg;
+  for (int n = 4; n < size + 4; n++){
+    m[n-4] =  bytes[(n * freqByteRate / 2) + (freqByteRate / 4)];
+  }
+  return size;
 }
 
 //'d' for difference mode  ->  returns the difference of the two file bytes
@@ -456,13 +467,14 @@ int main(int argc, char* argv[]) {
     }
 
     else if(strcmp(argv[1], "freqEncode") == 0) {
-      if(argc < 4) {
-          printf("ARGS should be \"[input file] [] [output file]\"\n");
+      if(argc < 5) {
+          printf("ARGS should be \"[input wav] [input file] [output wav]\"\n");
           return 1;
       }
       //printf("%s\n", argv[2]);
       int fd = open(argv[2], O_RDONLY);
-      int fdOut = open(argv[3], O_WRONLY | O_CREAT | O_TRUNC, 0600);
+      int fdMsg = open(argv[3], O_RDONLY);
+      int fdOut = open(argv[4], O_WRONLY | O_CREAT | O_TRUNC, 0600);
 
       if(fd < 0) err();
       if(fdOut < 0) err();
@@ -481,7 +493,9 @@ int main(int argc, char* argv[]) {
           printf("WAV file broken: data size incorrect");
           return 1;
       }
-      freqInsert(bytes, "hello world", 2000, a[0]);
+      unsigned char* msg;
+      int msgSize = fileToBytes(fdMsg, &msg);
+      freqInsert(bytes, dataSize, msg, msgSize, 2000, a[0]);
       lseek(fd, 0, SEEK_SET);
       char buff[4];
       while( read(fd, buff, 2) ){
@@ -493,16 +507,19 @@ int main(int argc, char* argv[]) {
       //printf("%d\n", lseek(fdOut, 0, SEEK_CUR));
       write(fdOut, bytes, dataSize);
       close(fd);
+      close(fdMsg);
       close(fdOut);
       free(bytes);
     }
     else if(strcmp(argv[1], "freqDecode") == 0) {
-        if(argc < 3) {
-            printf("ARGS should be \"[input file]\"\n");
+        if(argc < 4) {
+            printf("ARGS should be \"[input wav] [output file]\"\n");
             return 1;
         }
         int fd = open(argv[2], O_RDONLY);
+        int fdOut = open(argv[3], O_CREAT | O_TRUNC | O_WRONLY, 0600);
         if(fd < 0) err();
+        if(fdOut < 0) err();
         int* a = checkWavMore(fd);
         if(a == NULL) {
             printf("File provided does not appear to be in WAV format.\n");
@@ -518,8 +535,11 @@ int main(int argc, char* argv[]) {
             return 1;
         }
         //printf("%d ", bytes[0]); printf("%d ", bytes[1]); printf("%d\n", bytes[2]);
-        freqExtract(bytes, 11, 2000, a[0]);
+        unsigned char* msg;
+        int msgSize = freqExtract(bytes, &msg, 2000, a[0]);
+        write(fdOut, msg, msgSize);
         close(fd);
+        close(fdOut);
         free(bytes);
     }
     else if(strcmp(argv[1], "diff") == 0) {

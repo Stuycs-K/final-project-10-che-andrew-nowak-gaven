@@ -1,6 +1,6 @@
 [![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-24ddc0f5d75046c5622901739e7c5dd533143b0c8e959d652212380cedb1ea36.svg)](https://classroom.github.com/a/ecp4su41)
 ## Group Info
-Name: 
+Name: Noche (pronounced like mochi)  
 Members: Andrew Che, Gaven Nowak
 ## Overview
 This project is a tool that can be used to encrypt and decrypt information in WAV audio files. You can choose between multiple encryp\tion methods, all of which keep the audio nearly identical. The different tools are:  

@@ -82,6 +82,30 @@ Wrote a function for Gaven to get info about the wave. Fixed a bug where it assu
 
 Fixed two bugs with LSBextract, encoding and decoding now technically work but ruin the audio. I think it's because it turns 0s into non-0s so I tried making it only change non-0s but couldn't figure it out.
 
-### 5/31-6/5
+### 5/31
 
+Gaven told me in class the audio is ruined because I'm encoding in every byte. Each sample is 2 bytes so changing the more significant byte is ruining the audio. I'm working on fixing it but it's hard because my loops rely on every byte being encoded.
+
+### 6/1-6/3
+
+Very slow progress on fixing LSB. I took a while worrying about the int size being little/big endian and if that would affect the decoding. I don't know what was going wrong but I kept changing and rewriting until the correct size was printed, but now the data isn't being extracted correctly. Getting closer though.
+
+### 6/4
+
+Didn't work on it much on the day off. Added and removed a lot of debug prints but no commits and I still don't know what's wrong.
+
+### 6/5
+
+Finally finished fixing the LSB encoding. Audio is still actually a bit static-y but much much better. The last bug was me starting the data loop a byte too early which threw off all the bytes.
+
+### 6/6-6/7
+
+Added some stuff to help Gaven: a changeChannels function and checkWavMore now also gives numChannels. I also started on a bash script to make it easier to run different commands.
+
+### 6/8-6/9
+
+<<<<<<< HEAD
 Spent this whole time making the audio not get ruined. The bug was caused by modifying every byte instead of every 4 bytes, so the 4 byte int values in the audio changed a lot. When I tried to do every 4 bytes, it caused a lot of errors. I had to write the 4-bit int for size in manually (should work if computer is little or big endian) and debug a bunch of miswritten array stuff. Debugging took a lot of time but I finally finished in 6/5.
+=======
+I finished the bash script and made it work outside of the code directory. I also made freqInsert and Extract take files to encode instead of just "hello world". I also worked on the readme and presentation files.
+>>>>>>> adc32faf21aa659869ef9b19f8fe1649caedfaed
