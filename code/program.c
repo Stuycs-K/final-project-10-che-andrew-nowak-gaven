@@ -409,7 +409,7 @@ int main(int argc, char* argv[]) {
         unsigned char* bytes = malloc(dataSize);
         //printf("%d\n", lseek(fd, 0, SEEK_CUR));
         if(read(fd, bytes, dataSize) < dataSize) {
-            printf("WAV broken\n");
+            printf("WAV broken: size mismatch\n");
             return 1;
         }
         //printf("%d ", bytes[0]); printf("%d ", bytes[1]); printf("%d\n", bytes[2]);
@@ -481,7 +481,7 @@ int main(int argc, char* argv[]) {
         unsigned char* bytes = malloc(dataSize);
         //printf("%d\n", lseek(fd, 0, SEEK_CUR));
         if(read(fd, bytes, dataSize) < dataSize) {
-            printf("WAV broken\n");
+            printf("WAV broken: size mismatch\n");
             return 1;
         }
         //printf("%d ", bytes[0]); printf("%d ", bytes[1]); printf("%d\n", bytes[2]);
@@ -591,7 +591,7 @@ int main(int argc, char* argv[]) {
       unsigned char* bytes = malloc(dataSize);
       //printf("%d\n", lseek(fd, 0, SEEK_CUR));
       if(read(fd, bytes, dataSize) < dataSize) {
-          printf("WAV broken\n");
+          printf("WAV broken: size mismatch\n");
           return 1;
       }
 

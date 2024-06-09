@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 if [ "$1" == "" ]; then
-help="Please use the following commands:
+help=$'Please use the following commands:
 LSB encode:        audioSteg -le raw.wav input.file encoded.wav
 LSB decode:        audioSteg -ld encoded.wav output.file
 freq encode:       audioSteg -fe raw.wav encoded.wav
@@ -8,5 +8,30 @@ freq decode:       audioSteg -fd encoded.wav
 file diff:         audioSteg -df one.wav two.wav output.file
 bit resample:      audioSteg -br 16bit.wav 32bit.wav
 write 3rd channel: audioSteg -ce raw.wav
-read 3rd channel:  audioSteg -cd encoded.wav"
+read 3rd channel:  audioSteg -cd encoded.wav'
+echo "$help"
+fi
+if [ "$1" == "-le" ]; then
+make encode ARGS="$2 $3 $4"
+fi
+if [ "$1" == "-ld" ]; then
+make decode ARGS="$2 $3"
+fi
+if [ "$1" == "-fe" ]; then
+make freqEncode ARGS="$2 $3"
+fi
+if [ "$1" == "-fd" ]; then
+make freqDecode ARGS="$2"
+fi
+if [ "$1" == "-df" ]; then
+make diff ARGS="$2 $3 $4"
+fi
+if [ "$1" == "-br" ]; then
+make bitResample ARGS="$2 $3"
+fi
+if [ "$1" == "-ce" ]; then
+make channelWrite ARGS="$2"
+fi
+if [ "$1" == "-cd" ]; then
+make channelRead ARGS="$2"
 fi
