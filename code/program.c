@@ -755,12 +755,12 @@ int main(int argc, char* argv[]) {
 
 
 
-      // close(fd);
-      // close(fdData);
-      // close(fdOut);
-      // free(bytes);
-      // free(encodeBytes);
-      // free(fdOutBytes);
+      close(fd);
+      close(fdData);
+      close(fdOut);
+      free(bytes);
+      free(encodeBytes);
+      free(fdOutBytes);
     }
 }
 
