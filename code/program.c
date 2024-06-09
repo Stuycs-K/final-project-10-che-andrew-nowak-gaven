@@ -289,46 +289,72 @@ int channelWrite(unsigned char* inBytes, unsigned char* data, unsigned char* out
   int n = start;
 
   if(channel <= channelAmount){
-    for(n = start; n < byteDataSize; n++){
-      if(n % (bytesPerSample * channelAmount) == 0 && n < encodeSize){
-        outBytes[n] = data[n];
+    for(n = start; n + bytesPerSample < byteDataSize; n+=bytesPerSample){
+      for(int b = 0; b < bytesPerSample; b++){
+        if(n % (bytesPerSample * channelAmount) == 0){
+          if(n >= encodeSize){
+            outBytes[n + b] = 0;
+          }
+          else{
+            outBytes[n + b] = data[n + b];
+          }
+        }
+        else{
+          outBytes[n + b] = inBytes[n + b];
+        }
       }
-      else{
-        outBytes[n] = inBytes[n];
-      }
+
 
     }
     return n;
   }
-
-  for(n = start; n < byteDataSize; n++){
+  int count = 0;
+  for(n = start; n + bytesPerSample < byteDataSize; n+= bytesPerSample){
     if(n + offset >= outByteLength){
+      printf("count %d\n", count);
       return (n + offset);
     }
-    if( (n % (bytesPerSample * channelAmount) == 0)  && (dataIndex < encodeSize) ){
-      outBytes[n + offset] = data[dataIndex];
-      dataIndex++;
-      offset++;
+
+    for(int b = 0; b < bytesPerSample; b++){
+      if( (n % (bytesPerSample * channelAmount) == 0 )){
+        count++;
+        if(dataIndex < encodeSize){
+          outBytes[n + offset + b] = 0;
+          offset++;
+        }
+        else{
+          outBytes[n + offset + b] = data[dataIndex + b];
+          dataIndex++;
+          offset++;
+        }
+
+      }
+      else{
+        outBytes[n + offset + b] = inBytes[n + b];
+      }
     }
-    else{
-      outBytes[n + offset] = inBytes[n];
-    }
+
   }
+  printf("count %d\n", count);
+
   return (n + offset);
 }
 
-void channelRead(unsigned char* bytes, int length, int bitsPerSample, short channel){
+void channelRead(unsigned char* bytes, int length, int bitsPerSample, short channelAmount, short channel){
   int bytesPerSample = bitsPerSample / 8;
   printf("bytes per sample: %d\n", bytesPerSample);
 
-  for (int n = 0; n < length; n++){
-    if (n % bytesPerSample == 0){
-      printf("%02x", bytes[n]);
+  for (int n = 0; n + bytesPerSample < length; n+= bytesPerSample){
+    if (n % (bytesPerSample * channelAmount) == 0){
+      for(int b = 0; b < bytesPerSample; b++){
+        printf("%02x", bytes[n + b]);
+      }
+
     }
   }
 }
 
-void setChannels(unsigned char* bytes, short channels) {
+void setChannels(unsigned char* bytes, short initialChannels, short channels) {
   int i = 0;
 
   while( 1 ){
@@ -340,6 +366,13 @@ void setChannels(unsigned char* bytes, short channels) {
    }
    i += 10;
   memcpy(bytes + i, &channels, sizeof(short));
+  i += 6;
+  int byteRate = 0;
+  memcpy(&byteRate, bytes + i, sizeof(int));
+  // printf("og byte rate %d\n", byteRate);
+  byteRate = (int) (byteRate * channels) / initialChannels;
+  // printf("new byte rate %d\n", byteRate);
+  memcpy(bytes + i, &byteRate, sizeof(int));
 }
 
 int main(int argc, char* argv[]) {
@@ -573,11 +606,12 @@ int main(int argc, char* argv[]) {
     }
 
     else if(strcmp(argv[1], "channelRead") == 0) {
-      if(argc < 3) {
-          printf("ARGS should be \"[original file]\"\n");
+      if(argc < 4) {
+          printf("ARGS should be \"[original file] [channel]\n");
           return 1;
       }
       //printf("%s\n", argv[2]);
+      int channel = ((int) argv[3][0]) - '0';
       int fd = open(argv[2], O_RDONLY);
       if(fd < 0) err();
       int* a = checkWavMore(fd);
@@ -594,8 +628,7 @@ int main(int argc, char* argv[]) {
           printf("WAV broken: size mismatch\n");
           return 1;
       }
-
-      channelRead(bytes, dataSize, a[1], 2);
+      channelRead(bytes, dataSize, a[1], a[3], channel);
 
 
       close(fd);
@@ -616,14 +649,20 @@ int main(int argc, char* argv[]) {
       if(fdData < 0) err();
       if(fdOut < 0) err();
 
+      int* a = checkWavMore(fd);
+      if(a == NULL) {
+          printf("File provided does not appear to be in WAV format.\n");
+          return 1;
+      }
 
-      int fdChannelAmount = 2;
+      int fdChannelAmount = a[3];
       int channel = (int) argv[5][0] - '0';
+      lseek(fd, 0, SEEK_SET);
 
 
 
       //copy fd to fdOut
-      unsigned char* temp = malloc(2000);
+      unsigned char* temp = malloc(200);
 
 
       //meta data should be in the first 200 bytes...
@@ -632,12 +671,13 @@ int main(int argc, char* argv[]) {
       read(fd, temp, 200);
 
       if(channel > fdChannelAmount){
-        setChannels(temp, channel);
+        setChannels(temp, fdChannelAmount, channel);
       }
 
       write(fdOut, temp, 200);
 
-
+      free(temp);
+      temp = malloc(tempFdSize - 200);
 
       read(fd, temp, tempFdSize - 200);
 
@@ -656,7 +696,7 @@ int main(int argc, char* argv[]) {
 
 
       //fd bytes
-      int* a = checkWavMore(fd);
+      a = checkWavMore(fd);
       if(a == NULL) {
           printf("File provided does not appear to be in WAV format.\n");
           return 1;
@@ -696,7 +736,7 @@ int main(int argc, char* argv[]) {
 
       //channel write the stuff
 
-      printf("byteSize, %d fdChannelAmount: %d, channel: %d\n", byteDataSize, fdChannelAmount, channel);
+      printf("dataIndex %d, byteSize, %d encodeSize %d, outLength %d, fdChannelAmount: %d, channel: %d\n", dataIndex, byteDataSize, encodeSize, outLength, fdChannelAmount, channel);
 
       int outByteSize = channelWrite(bytes, encodeBytes, fdOutBytes, dataIndex, byteDataSize, encodeSize, outLength, a[1], fdChannelAmount, channel );
       printf("outbytesize: %d\n", outByteSize);
@@ -706,8 +746,7 @@ int main(int argc, char* argv[]) {
       lseek(fdOut, dataIndex, SEEK_SET);
 
       write(fdOut, fdOutBytes, outByteSize);
-      //find fd's channel amount
-      //change fdOut's channel amount to
+
 
 
 
