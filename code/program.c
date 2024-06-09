@@ -280,7 +280,7 @@ void bitResample(int fd, char mode, unsigned short newBitsPerSample){
 }
 
 
-int channelWrite(unsigned char* inBytes, unsigned char* data, unsigned char* outBytes, int start, int lengthOfInBytes, int dataLength, int outByteLength, int bitsPerSample, short channelAmount, short channel){
+int channelWrite(unsigned char* inBytes, unsigned char* data, unsigned char* outBytes, int start, int byteDataSize, int encodeSize, int outByteLength, int bitsPerSample, short channelAmount, short channel){
   int bytesPerSample = bitsPerSample / 8;
   printf("bytes per sample: %d\n", bytesPerSample);
 
@@ -289,12 +289,8 @@ int channelWrite(unsigned char* inBytes, unsigned char* data, unsigned char* out
   int n = start;
 
   if(channel <= channelAmount){
-    for(n = start; n < lengthOfInBytes; n++){
-      if(n >= dataLength){
-        outBytes[n] = inBytes[n];
-      }
-
-      if(n % (bytesPerSample * channelAmount) == 0){
+    for(n = start; n < byteDataSize; n++){
+      if(n % (bytesPerSample * channelAmount) == 0 && n < encodeSize){
         outBytes[n] = data[n];
       }
       else{
@@ -305,22 +301,14 @@ int channelWrite(unsigned char* inBytes, unsigned char* data, unsigned char* out
     return n;
   }
 
-  for(n = start; n < lengthOfInBytes; n++){
+  for(n = start; n < byteDataSize; n++){
     if(n + offset >= outByteLength){
       return (n + offset);
     }
-    if(n % (bytesPerSample * channelAmount) == 0){
-
-      if(dataIndex < dataLength){
-        outBytes[n + offset] = inBytes[n];
-        offset++;
-      }
-      else{
-        outBytes[n + offset] = data[dataIndex];
-        dataIndex++;
-        offset++;
-      }
-
+    if( (n % (bytesPerSample * channelAmount) == 0)  && (dataIndex < encodeSize) ){
+      outBytes[n + offset] = data[dataIndex];
+      dataIndex++;
+      offset++;
     }
     else{
       outBytes[n + offset] = inBytes[n];
@@ -342,8 +330,15 @@ void channelRead(unsigned char* bytes, int length, int bitsPerSample, short chan
 
 void setChannels(unsigned char* bytes, short channels) {
   int i = 0;
-  while(strncmp(bytes[i], "fmt ", 4)) ++i;
-  i += 10;
+
+  while( 1 ){
+  //  printf("EHLOsdf%d: %2x, %2x, %2x, %2x\n", i, bytes[i], bytes[i + 1], bytes[i+2], bytes[i+3], bytes[i+4]);
+     if(bytes[i] == 'f' && bytes[i + 1] == 'm' && bytes[i + 2] == 't' && bytes[i + 3] == ' '){
+       break;
+     }
+     i++;
+   }
+   i += 10;
   memcpy(bytes + i, &channels, sizeof(short));
 }
 
@@ -615,21 +610,52 @@ int main(int argc, char* argv[]) {
       //printf("%s\n", argv[2]);
       int fd = open(argv[2], O_RDONLY);
       int fdData = open(argv[3], O_RDONLY);
-      int fdOut = open(argv[4], O_WRONLY | O_CREAT | O_TRUNC, 0600);
+      int fdOut = open(argv[4], O_RDWR | O_CREAT | O_TRUNC, 0600);
 
       if(fd < 0) err();
       if(fdData < 0) err();
       if(fdOut < 0) err();
 
-      unsigned char* temp = malloc(1000);
 
-      while(read(fd, temp, 1000)){
-        write(fdOut, temp, 1000);
+      int fdChannelAmount = 2;
+      int channel = (int) argv[5][0] - '0';
+
+
+
+      //copy fd to fdOut
+      unsigned char* temp = malloc(2000);
+
+
+      //meta data should be in the first 200 bytes...
+      int tempFdSize = lseek(fd, 0, SEEK_END);
+      lseek(fd, 0, SEEK_SET);
+      read(fd, temp, 200);
+
+      if(channel > fdChannelAmount){
+        setChannels(temp, channel);
       }
+
+      write(fdOut, temp, 200);
+
+
+
+      read(fd, temp, tempFdSize - 200);
+
+      write(fdOut, temp, tempFdSize - 200);
       lseek(fd, 0, SEEK_SET);
       lseek(fdOut, 0, SEEK_SET);
 
 
+      //encode file bytes
+      int encodeSize = lseek(fdData, 0, SEEK_END);
+      unsigned char* encodeBytes = malloc(encodeSize);
+      if(read(fdData, encodeBytes, encodeSize)){
+        printf("encode broken channel write\n");
+        return 1;
+      }
+
+
+      //fd bytes
       int* a = checkWavMore(fd);
       if(a == NULL) {
           printf("File provided does not appear to be in WAV format.\n");
@@ -637,45 +663,48 @@ int main(int argc, char* argv[]) {
       }
       int byteDataSize = a[2];
 
-      int dataSize = lseek(fdData, 0, SEEK_END);
-      lseek(fdData, 0, SEEK_SET);
-
       unsigned char* bytes = malloc(byteDataSize);
-      unsigned char* data = malloc(dataSize);
-      unsigned char* fdOutBytes;
-      //printf("%d\n", lseek(fd, 0, SEEK_CUR));
+
+      int dataIndex = lseek(fd, 0, SEEK_CUR);
+
       if(read(fd, bytes, byteDataSize) < byteDataSize) {
-          printf("WAV broken\n");
+          printf("read broken channel write\n");
           return 1;
       }
 
 
-      if(read(fdData, data, dataSize) < dataSize) {
-          printf("data broken\n");
-          return 1;
-      }
 
-      int index = lseek(fd, 0, SEEK_CUR);
+      //fdOut bytes
+      unsigned char* fdOutBytes;
 
 
-      int fdChannelAmount = 2;
-      int channel = (int) argv[5][0] - '0';
 
-      int outLength = 0;
-
-
+      int outLength = byteDataSize;
       if(fdChannelAmount > channel){
-        fdOutBytes = malloc(byteDataSize);
+        fdOutBytes = malloc(outLength);
       }
       else{
         outLength = byteDataSize * channel / fdChannelAmount;
         printf("%d, %d\n", byteDataSize, outLength);
         fdOutBytes = malloc(outLength * 2);
       }
-    //  lseek(fd, 0, SEEK_SET);
+      lseek(fdOut, dataIndex, SEEK_SET);
+      if(read(fdOut, fdOutBytes, byteDataSize) < byteDataSize) {
+          printf("data broken\n");
+          return 1;
+      }
+
+      //channel write the stuff
+
       printf("byteSize, %d fdChannelAmount: %d, channel: %d\n", byteDataSize, fdChannelAmount, channel);
-      int outByteSize = channelWrite(bytes, data, fdOutBytes, index, byteDataSize, dataSize, outLength, a[1], fdChannelAmount, channel );
+
+      int outByteSize = channelWrite(bytes, encodeBytes, fdOutBytes, dataIndex, byteDataSize, encodeSize, outLength, a[1], fdChannelAmount, channel );
       printf("outbytesize: %d\n", outByteSize);
+
+
+
+      lseek(fdOut, dataIndex, SEEK_SET);
+
       write(fdOut, fdOutBytes, outByteSize);
       //find fd's channel amount
       //change fdOut's channel amount to
@@ -684,12 +713,12 @@ int main(int argc, char* argv[]) {
 
 
 
-      close(fd);
-      close(fdData);
-      close(fdOut);
-      free(bytes);
-      free(data);
-      free(fdOutBytes);
+      // close(fd);
+      // close(fdData);
+      // close(fdOut);
+      // free(bytes);
+      // free(encodeBytes);
+      // free(fdOutBytes);
     }
 }
 
