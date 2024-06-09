@@ -174,7 +174,7 @@ void freqInsert(unsigned char* bytes, int bytesLength, unsigned char* msg, int m
 
 }
 
-int freqExtract(unsigned char* bytes, unsigned char** msg, int freq, int sampleRate){
+int freqExtract(unsigned char* bytes, int bytesSize, unsigned char** msg, int freq, int sampleRate){
 
   int freqByteRate = sampleRate / freq;
   printf("bits sample channel: %d\n", sampleRate);
@@ -190,6 +190,9 @@ int freqExtract(unsigned char* bytes, unsigned char** msg, int freq, int sampleR
   unsigned char* m = *msg;
   for (int n = 4; n < size + 4; n++){
     m[n-4] =  bytes[(n * freqByteRate / 2) + (freqByteRate / 4)];
+    if((n * freqByteRate / 2) + (freqByteRate / 4) > bytesSize) {
+      return n + 4;
+    }
   }
   return size;
 }
@@ -545,7 +548,7 @@ int main(int argc, char* argv[]) {
           return 1;
         }
         unsigned char* msg;
-        int msgSize = freqExtract(bytes, &msg, freq, a[0]);
+        int msgSize = freqExtract(bytes, dataSize, &msg, freq, a[0]);
         write(fdOut, msg, msgSize);
         close(fd);
         close(fdOut);
