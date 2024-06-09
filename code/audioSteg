@@ -3,8 +3,8 @@ if [ "$1" == "" ]; then
 help=$'Please use the following commands:
 LSB encode:        audioSteg -le raw.wav input.file encoded.wav
 LSB decode:        audioSteg -ld encoded.wav output.file
-freq encode:       audioSteg -fe raw.wav encoded.wav
-freq decode:       audioSteg -fd encoded.wav
+freq encode:       audioSteg -fe raw.wav input.file encoded.wav
+freq decode:       audioSteg -fd encoded.wav output.file
 file diff:         audioSteg -df one.wav two.wav output.file
 bit resample:      audioSteg -br 16bit.wav 32bit.wav
 write 3rd channel: audioSteg -ce raw.wav
@@ -18,10 +18,10 @@ if [ "$1" == "-ld" ]; then
 make decode ARGS="$2 $3"
 fi
 if [ "$1" == "-fe" ]; then
-make freqEncode ARGS="$2 $3"
+make freqEncode ARGS="$2 $3 $4"
 fi
 if [ "$1" == "-fd" ]; then
-make freqDecode ARGS="$2"
+make freqDecode ARGS="$2 $3"
 fi
 if [ "$1" == "-df" ]; then
 make diff ARGS="$2 $3 $4"
