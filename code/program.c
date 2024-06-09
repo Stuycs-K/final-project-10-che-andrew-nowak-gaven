@@ -162,11 +162,12 @@ void freqInsert(unsigned char* bytes, int bytesLength, unsigned char* msg, int m
   int freqByteRate = sampleRate / freq;
   printf("bits sample channel: %d\n", sampleRate);
   printf("bytes rate: %d\n", freqByteRate);
+  printf("bytes length: %d\n", bytesLength);
 
   for (int n = 0; n < msgLength; n++){
     if((n * freqByteRate / 2) + (freqByteRate / 4) > bytesLength) {
       printf("WAV file is too small to store data\n");
-      exit(1);
+      return;
     }
     bytes[(n * freqByteRate / 2) + (freqByteRate / 4)] = msg[n];
   }
